@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #define TOKEN_BUFSIZE 64 
 
@@ -10,18 +13,28 @@ char** parse_command(char*);
 int main(int argc, char* argv[]) {
   char* cmd;
   char** token;
-  int status = 1; 
+  int status; 
 
   do {
     printf("goblin-shell > ");
     cmd = get_command();
     token = parse_command(cmd);
 
-    status = 0;
+    // create a child to exec the command
+    pid_t child = fork();
+    if(child > 0) { // parent
+      wait(&status);
+    } else if (child == 0) { //child
+      execvp(cmd, token);
+      perror("Failed to exec");
+      exit(0);
+    } else { // failed to fork
+      perror("Failed to fork");
+    }
 
     free(cmd);
     free(token);
-  } while (status);
+  } while (1);
 
   return EXIT_SUCCESS;
 }
