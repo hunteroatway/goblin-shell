@@ -6,9 +6,11 @@
 #include <sys/wait.h>
 
 #define TOKEN_BUFSIZE 64 
+#define MAX 128
 
 char* get_command();
 char** parse_command(char*);
+void printImage();
 
 int main(int argc, char* argv[]) {
   char* cmd;
@@ -24,6 +26,9 @@ int main(int argc, char* argv[]) {
 
     // check to see if user wants help or exit
     if(!strcmp(first, "exit") || !strcmp(first, "lo") || !strcmp(first, "quit") || !strcmp(first, "shutdown")){
+      printf("goblin-shell terminating...\n");
+      printImage();
+      free(first);
       free(cmd);
       free(token);
       exit(0);
@@ -93,4 +98,21 @@ char** parse_command(char* _cmd) {
 
   buffer[pos] = NULL;
   return buffer;
+}
+
+void printImage() {
+
+  FILE *file = NULL;
+  if((file = fopen("goblin.txt", "r")) == NULL){
+    perror("Error opening file");
+    return;
+  }
+
+  char read[MAX];
+  while(fgets(read, sizeof(read), file) != NULL)
+    printf("%s", read);
+
+    return;
+
+    fclose(file);
 }
