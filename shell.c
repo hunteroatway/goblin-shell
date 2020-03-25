@@ -19,19 +19,33 @@ int main(int argc, char* argv[]) {
     printf("goblin-shell > ");
     cmd = get_command();
     token = parse_command(cmd);
+    char* first = malloc(sizeof(char*));
+    strcpy(first, token[0]);
 
-    // create a child to exec the command
-    pid_t child = fork();
-    if(child > 0) { // parent
-      wait(&status);
-    } else if (child == 0) { //child
-      execvp(cmd, token);
-      perror("Failed to exec");
+    // check to see if user wants help or exit
+    if(!strcmp(first, "exit") || !strcmp(first, "lo") || !strcmp(first, "quit") || !strcmp(first, "shutdown")){
+      free(cmd);
+      free(token);
       exit(0);
-    } else { // failed to fork
-      perror("Failed to fork");
+    } else if (!strcmp(first, "help") || !strcmp(first, "h")){
+      // print some helpful stuff
+      printf("You can use this shell in order to execute any commands from a unix system. Example usage is ./example.c arg1 arg2 \n");
+      printf("To quit the shell type \"exit, lo, quit or shutdown\". \n");
+    } else {
+      // create a child to exec the command
+      pid_t child = fork();
+      if(child > 0) { // parent
+        wait(&status);
+      } else if (child == 0) { //child
+        execvp(first, token);
+        perror("Failed to exec. Type help for more information on usage");
+        exit(0);
+      } else { // failed to fork
+        perror("Failed to fork");
+      }
     }
 
+    free(first);
     free(cmd);
     free(token);
   } while (1);
