@@ -7,7 +7,7 @@ Compile the shell using the Makefile including the repository. Running 'make' vi
 Make sure to configure your desired host and port information in the config.ini file located in the config directory of the repository.
 
 ## Usage
-Run the shell by executing the following on your terminal. (Note: chmod can also be used to add execution permissions on the shell.py file)
+Run the shell by executing the following on your terminal. (Note: chmod can also be used to add execution permissions on the shell.c file)
 
 ```
 ./goblin-shell
