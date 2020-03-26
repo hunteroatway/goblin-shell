@@ -11,6 +11,8 @@
 int food, troops;
 int queen = 0;
 int butler = 0;
+int gathered = 0;
+pthread_mutex_t mutex;
 
 void *fetchFood();
 
@@ -90,11 +92,32 @@ int main(int argc, char* argv[]) {
             }
         while(!butler);
 
+        // have butler speak
         printf("Butler: Why of course your majesty. I will gather %d of our best troops to hunt for %d bits of food \n", troops, food);
         sleep(1);
         printf("Butler: I am on my way now. I will not let you down! \n");
 
-
+        // set up threads 
+        void *p_status;
+        pthread_t *thread_ids = malloc(sizeof(pthread_t)*troops);
+        int i;
+        for (i = 0; i < troops; i++) {
+            int *arg = malloc(sizeof(*arg));
+            *arg = i;
+            if( pthread_create(&thread_ids[i], NULL, fetchFood, arg) > 0){
+                    perror("pthread_create failure");
+                    exit(1);
+            }
+        }
+        
+        // wait for threads to finish
+         // join threads and print their return values
+        for (i = 0; i < troops; i++) {
+            if (pthread_join(thread_ids[i], &p_status) != 0) {
+                perror("trouble joining thread: ");
+                exit(1);
+            }
+        }
 
     } else {
         // the queen
@@ -130,4 +153,23 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
+}
+
+void * fetchFood(void *num) {
+
+    // calculate number of trips
+    int upperTrip = 10;
+    int lowerTrip = 1;
+    int total = 0;
+    int g_num = *((int *) num) + 1;
+
+    int trips = rand() % (upperTrip - lowerTrip + 1) + lowerTrip;
+    printf("Goblin %d: I am going to go on %d adventures to gather this food! \n", g_num ,trips);
+
+    // get mutex on the gathered
+    if(pthread_mutex_lock(&mutex) != 0) {
+        perror("Could not lock");
+        exit(3);
+    }
+
 }
