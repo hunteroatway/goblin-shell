@@ -1,8 +1,16 @@
 /***********************************************************************************************************
 ** Usage:
+**  
+**  After compiling with "make" you can run the program with "./raid (foodCount) (troopCount)"
+**  With values for foodCount from between 150 and 250.
+**  With values for troopCount from between 5 and 10
+**  If the last two arguments are left blank the program automatically generates these values.
 **
+**  The program will execute and then run the simulation of goblins raiding to get food.
 **
+**  This program is designed to use many features within operating systems such as forks, threads, opening and closing files, mutexes, signals
 **
+**  Alternative compile: gcc raid.c -o raid -pthread
 **
 ***********************************************************************************************************/
 
@@ -217,6 +225,7 @@ int main(int argc, char* argv[]) {
             printf("Butler: We succesfully manged to get enough food! \n");
         sleep(1);
         printf("Butler: Here is a report. \n");
+        sleep(1);
         butler = 0;
         kill(queenPid, SIGUSR2);
         while(!butler);
@@ -317,9 +326,9 @@ int main(int argc, char* argv[]) {
 
         wait(&status);
 
-        printf("THE END! \n");
-
     }
+
+    printf("THE END! \n");
 
     return 0;
 }
