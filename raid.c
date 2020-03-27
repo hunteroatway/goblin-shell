@@ -26,6 +26,8 @@ int butler = 0;
 int gathered = 0;
 pthread_mutex_t mutex;
 
+#define MAX 128
+
 struct arg {
     int g_number;
     int sum;
@@ -33,7 +35,7 @@ struct arg {
 
 void *fetchFood();
 void printImage();
-void printImageFile(FILE * report)
+void printImageFile(FILE * report);
 
 // signals used to have the queen and butler communicate across 2 processes to invoke waiting
 static void intHandler(int signalNo, siginfo_t *info, void *context) {
