@@ -1,3 +1,21 @@
+/***********************************************************************************************************
+** Usage:
+**  
+**  After compiling with "make" you can run the program with "./raid (foodCount) (troopCount)"
+**  With values for foodCount from between 150 and 250.
+**  With values for troopCount from between 5 and 10
+**  If the last two arguments are left blank the program automatically generates these values.
+**
+**  The program will execute and then run the simulation of goblins raiding to get food.
+**
+**  This program is designed to use many features within operating systems such as forks, threads, opening and closing files, mutexes, signals
+**
+**  Alternative compile: gcc raid.c -o raid -pthread
+**
+***********************************************************************************************************/
+
+// note will have to somehow push the goblin.txt file over to the server so can copy photo
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +25,8 @@
 #include <pthread.h>
 #include <signal.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <fcntl.h> 
 
 int food, troops;
 int queen = 0;
@@ -14,12 +34,16 @@ int butler = 0;
 int gathered = 0;
 pthread_mutex_t mutex;
 
+#define MAX 128
+
 struct arg {
     int g_number;
     int sum;
 };
 
 void *fetchFood();
+void printImage();
+void printImageFile(FILE * report);
 
 // signals used to have the queen and butler communicate across 2 processes to invoke waiting
 static void intHandler(int signalNo, siginfo_t *info, void *context) {
@@ -87,6 +111,8 @@ int main(int argc, char* argv[]) {
     } if (pid == 0) { 
         // the butler
 
+        pid_t queenPid = getppid();
+
         //set the stage (the bitmask)
             sigemptyset (&interruptMask);
             sigaddset (&interruptMask, SIGUSR1);  
@@ -142,9 +168,76 @@ int main(int argc, char* argv[]) {
             printf("Goblin %d: I manged to find a total of %d bits of food!\n", list[i].g_number, list[i].sum);
             sleep(1);
         }
-        //free the arrays
-        free(list);
+        //free the array
         free(thread_ids);
+
+        // need to add butler reacting and then passing it to the queen. potentially though a txt file.
+        if(gathered < food) // panic
+            printf("Butler: Oh no! I didn't gather enough food! The Queen is going to be so angry with me!\n");
+        else if(gathered > food) // panic
+            printf("Butler: Oh no! I gathered too much food! The Queen is going to be so angry with me!\n");
+        else if(gathered == food) // happy
+            printf("Butler: Yay! I gathered enough food. The Queen is going to be happy with me! \n");
+        sleep(1);
+        printf("Butler: It is time to write my report about these gatherings. \n");
+        // open a txt file to write the report
+        FILE *report = NULL;
+        if((report = fopen("report.txt", "w")) == NULL){
+            perror("Error opening file");
+            return;
+        }
+        
+        fprintf(report, "We managed to gather a total of: \n");
+        fprintf(report, "%d \n \n", gathered);
+
+        if(gathered < food) // panic
+            fprintf(report, "We were unable to get enough food.\n");
+        else if(gathered > food) // panic
+            fprintf(report, "I hope having more food is acceptable.\n");
+        else if(gathered == food) // happy
+            fprintf(report, "We succesfully manged to get enough food! \n");
+
+        // print how much each goblin found
+        for(i = 0; i < troops; i++) {
+            fprintf(report, "Goblin %d manged to find %d food. \n", list[i].g_number, list[i].sum);
+        }
+        printImageFile(report);
+
+        // free the list
+        free (list);
+        //close file
+        fclose(report);
+
+        sleep(3);
+        // return the list to the queen
+        printf("Butler: I now have to deliver this report to the queen \n");
+        sleep(5);
+        butler = 0;
+        kill(queenPid, SIGUSR2);
+        while(!butler);
+
+        // answer queen
+        if(gathered < food) // panic
+            printf("Butler: We were unable to get enough food.\n");
+        else if(gathered > food) // panic
+            printf("Butler: We manged to get extra food. Hopefully that is okay.\n");
+        else if(gathered == food) // happy
+            printf("Butler: We succesfully manged to get enough food! \n");
+        sleep(1);
+        printf("Butler: Here is a report. \n");
+        sleep(1);
+        butler = 0;
+        kill(queenPid, SIGUSR2);
+        while(!butler);
+
+        // respond
+        if(gathered == food) // happy
+            printf("Butler: I am glad to be of service!\n");
+        else if(gathered > food || gathered < food) // panic
+            printf("Butler: I am sorry to have let you down your majesty. I will make sure not to make this mistake on the next raid.\n");
+        
+        sleep(1);
+        exit(0);
 
     } else {
         // the queen
@@ -174,10 +267,68 @@ int main(int argc, char* argv[]) {
         kill (pid, SIGUSR1);
         
         // wait for butler to return
-        //while(!queen);
+        while(!queen);
+
+        // talk to butler
+        printf("Queen: Hello butler, I see you have returned. How did you fair on this mission? \n");
+        sleep(1);
+        queen = 0;
+        kill (pid, SIGUSR1);
+        // wait for butler
+        while(!queen);
+
+        printf("Queen: Thank you for the report. I will read that right away.\n");
+
+        FILE * report; 
+        if((report = fopen("report.txt", "r")) == NULL){
+            perror("Error opening file");
+            return;
+        }
+        fscanf(report, "%*[^\n]"); // ignore first line
+        fscanf(report, "%d", &gathered); // get the number gathered
+
+        sleep(2);
+
+        // react to food
+        printf("Queen: I see you have gathered a total of %d food. I requested %d food.\n", gathered, food);
+        sleep(1);
+        if(gathered == food) {
+            printf("Queen: Excellent! Thank you for gathering the correct amount of food! I will require your services again soon! \n");
+            sleep(1);
+            kill (pid, SIGUSR1);
+        } else if(gathered < food && (food - gathered) < food * 0.1) { // if within 10 %
+            printf("Queen: You failed to gather enough food. However, there is enough food to make do. You are dismissed... this time. \n");
+            sleep(1);
+            kill (pid, SIGUSR1);
+        } else if(gathered < food && !((food - gathered) < food * 0.1)) { // if not within 10 %
+            printf("Queen: You failed to gather enough food. Guards get the guillotine ready! \n");
+            sleep(1);
+            kill (pid, SIGKILL);
+            printf("Crowd: BEGONE USELESS BUTLER! \n");
+            sleep(1);
+            printf("Queen: These butlers are dispensable anyway. I will find another.\n");
+            sleep(1);
+            printf("Queen: Goblins you did your best. Be prepared for another raid shortly.\n");
+        } else if(gathered > food && (gathered - food) < food * 0.1) { // if within 10 %
+            printf("Queen: You mangaged to gather too much food. However, there is enough food for a surplus. You are dismissed... this time. \n");
+            sleep(1);
+            kill (pid, SIGUSR1);
+        } else if(gathered > food && !((gathered - food) < food * 0.1)) { // if not within 10 %
+            printf("Queen: You mangaged to gather too much food. Guards get the guillotine ready! \n");
+            sleep(1);
+            kill (pid, SIGKILL);
+            printf("Crowd: BEGONE USELESS BUTLER! \n");
+            sleep(1);
+            printf("Queen: These butlers are dispensable anyway. I will find another.\n");
+            sleep(1);
+            printf("Queen: Goblins you did your best. Be prepared for another raid shortly.\n");
+        }
+
         wait(&status);
 
     }
+
+    printf("THE END! \n");
 
     return 0;
 }
@@ -193,7 +344,6 @@ void * fetchFood(void *num) {
 
     int trips = rand() % (upperTrip - lowerTrip + 1) + lowerTrip;
     printf("Goblin %d: I am going to go on %d adventures to gather this food! \n", list->g_number ,trips);
-
     
     // loop through the trips
     int x;
@@ -225,4 +375,38 @@ void * fetchFood(void *num) {
     }
 
     return;
+}
+
+void printImage() {
+
+  FILE *file = NULL;
+  if((file = fopen("goblin.txt", "r")) == NULL){
+    perror("Error opening file");
+    return;
+  }
+
+  char read[MAX];
+  while(fgets(read, sizeof(read), file) != NULL)
+    printf("%s", read);
+
+    return;
+
+    fclose(file);
+}
+
+void printImageFile(FILE * report) {
+
+  FILE *file = NULL;
+  if((file = fopen("goblin.txt", "r")) == NULL){
+    perror("Error opening file");
+    return;
+  }
+
+  char read[MAX];
+  while(fgets(read, sizeof(read), file) != NULL)
+    fprintf(report, "%s", read);
+
+    return;
+
+    fclose(file);
 }
