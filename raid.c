@@ -1,3 +1,13 @@
+/***********************************************************************************************************
+** Usage:
+**
+**
+**
+**
+***********************************************************************************************************/
+
+// note will have to somehow push the goblin.txt file over to the server so can copy photo
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +17,8 @@
 #include <pthread.h>
 #include <signal.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <fcntl.h> 
 
 int food, troops;
 int queen = 0;
@@ -20,6 +32,8 @@ struct arg {
 };
 
 void *fetchFood();
+void printImage();
+void printImageFile(FILE * report)
 
 // signals used to have the queen and butler communicate across 2 processes to invoke waiting
 static void intHandler(int signalNo, siginfo_t *info, void *context) {
@@ -142,9 +156,50 @@ int main(int argc, char* argv[]) {
             printf("Goblin %d: I manged to find a total of %d bits of food!\n", list[i].g_number, list[i].sum);
             sleep(1);
         }
-        //free the arrays
-        free(list);
+        //free the array
         free(thread_ids);
+
+        // need to add butler reacting and then passing it to the queen. potentially though a txt file.
+        if(gathered < food) // panic
+            printf("Butler: Oh no! I didn't gather enough food! The Queen is going to be so angry with me!\n");
+        else if(gathered > food) // panic
+            printf("Butler: Oh no! I gathered too much food! The Queen is going to be so angry with me!\n");
+        else if(gathered == food) // happy
+            printf("Butler: Yay! I gathered enough food. The Queen is going to be happy with me! \n");
+
+        printf("Butler: It is time to write my report about these gatherings. /n");
+        // open a txt file to write the report
+        FILE *report = NULL;
+        if((report = fopen("goblin.txt", "w")) == NULL){
+            perror("Error opening file");
+            return;
+        }
+        
+        fprintf(report, "We managed to gather a total of: \n");
+        fprintf(report, "%d \n \n", gathered);
+
+        if(gathered < food) // panic
+            fprintf(report, "We were unable to get enough food.\n");
+        else if(gathered > food) // panic
+            fprintf(report, "I hope having more food is acceptable.\n");
+        else if(gathered == food) // happy
+            fprintf(report, "We succesfully manged to get enough food! \n");
+
+        // print how much each goblin found
+        for(i = 0; i < troops; i++) {
+            fprintf(report, "Goblin %d manged to find %d food.", list[i].g_number, list[i].sum);
+        }
+
+        printImageFile(report);
+
+        // free the list
+        free (list);
+        //close file
+        fclose(report);
+
+        // return the list to the queen
+        printf("Butler: I now have to deliver this report to the queen /n");
+
 
     } else {
         // the queen
@@ -193,7 +248,6 @@ void * fetchFood(void *num) {
 
     int trips = rand() % (upperTrip - lowerTrip + 1) + lowerTrip;
     printf("Goblin %d: I am going to go on %d adventures to gather this food! \n", list->g_number ,trips);
-
     
     // loop through the trips
     int x;
@@ -225,4 +279,38 @@ void * fetchFood(void *num) {
     }
 
     return;
+}
+
+void printImage() {
+
+  FILE *file = NULL;
+  if((file = fopen("goblin.txt", "r")) == NULL){
+    perror("Error opening file");
+    return;
+  }
+
+  char read[MAX];
+  while(fgets(read, sizeof(read), file) != NULL)
+    printf("%s", read);
+
+    return;
+
+    fclose(file);
+}
+
+void printImageFile(FILE * report) {
+
+  FILE *file = NULL;
+  if((file = fopen("goblin.txt", "r")) == NULL){
+    perror("Error opening file");
+    return;
+  }
+
+  char read[MAX];
+  while(fgets(read, sizeof(read), file) != NULL)
+    fprintf(report, "%s", read);
+
+    return;
+
+    fclose(file);
 }
