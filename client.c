@@ -4,8 +4,11 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <netinet/in.h>
 #include <netdb.h>
+
+#define BUFSIZE 75
 
 int main(int argc, char* argv[]) {
 	struct sockaddr_in sock_addr;
@@ -50,7 +53,31 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
   
+  char dir[BUFSIZE];
+  int dir_size = read(sock, dir, BUFSIZE);
+  fflush(stdout);
+  printf("the path is %s \n", dir);
 
+  // path for the scp. combine username, server and path
+  char scpPath[512];
+
+
+  // try to move a file over
+  pid_t child = fork();
+  int status;
+  if(child == -1){
+    perror("fork");
+    exit(0);
+  } else if (child == 0) {
+    execl("/usr/bin/scp", "scp", "goblin.txt", scpPath, NULL);
+    perror("exec failure");
+    exit(1);
+
+  } else {
+    wait(&status);
+    printf("Maybe it worked?");
+
+  } 
  
   while((num_char=read(sock, ch, 512)) > 0) {
     if (write(1, ch, num_char) < num_char) {

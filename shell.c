@@ -1,3 +1,5 @@
+
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +10,10 @@
 #define TOKEN_BUFSIZE 64 
 #define MAX 128
 
+// used for getting the value of MAX inside the scanf. Converts max to the literal x to be concatinated
+#define S2(x) #x
+#define S(x) S2(x)
+
 char* get_command();
 char** parse_command(char*);
 void printImage();
@@ -16,7 +22,14 @@ int main(int argc, char* argv[]) {
   char* cmd;
   char** token;
   int status; 
+  size_t size = 0;
+  char* username = NULL;
 
+  //prompt for username
+  printf("Welcome to goblin-shell. Please enter your username to continue: \n");
+  getline(&username, &size, stdin);
+  printf("goblin-shell Welcome %s\n", username);
+  
   do {
     printf("goblin-shell > ");
     cmd = get_command();
