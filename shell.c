@@ -29,7 +29,8 @@ int main(int argc, char* argv[]) {
   printf("Welcome to goblin-shell. Please enter your username to continue: \n");
   getline(&username, &size, stdin);
   printf("goblin-shell Welcome %s\n", username);
-  
+  username[strlen(username)-1] = 0; 
+ 
   do {
     printf("goblin-shell > ");
     cmd = get_command();
@@ -55,7 +56,18 @@ int main(int argc, char* argv[]) {
       if(child > 0) { // parent
         wait(&status);
       } else if (child == 0) { //child
-        execvp(first, token);
+       
+        // setup file path 
+        char path[256];
+        strcat(path, username);
+        strcat(path, "@");
+        strcat(path, "hercules.cs.uregina.ca");
+        strcat(path, ":");
+        strcat(path, "~/temp-shell");
+  
+        // copy the server file over to the remote host
+        execl("/usr/bin/scp", "scp -q", "server.c", path, NULL);
+
         perror("Failed to exec. Type help for more information on usage");
         exit(0);
       } else { // failed to fork
