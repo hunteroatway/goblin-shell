@@ -28,10 +28,14 @@ int main(int argc, char* argv[]) {
   char* portNo = NULL;
   int port;
   int serverSet = 0;
+  char *pos;
 
   //prompt for username
   printf("Welcome to goblin-shell. Please enter your username to continue: \n");
   getline(&username, &size, stdin);
+  // set new line to end of string
+  if ((pos=strchr(username, '\n')) != NULL)
+    *pos = '\0';
   printf("goblin-shell Welcome %s\n", username);
   
   do {
@@ -59,8 +63,8 @@ int main(int argc, char* argv[]) {
       if(serverSet == 1) {
         // invoke client with form ./client $serverName $Port compile $[compliation]
         token2 = malloc(sizeof(char*)*5);
-        token2[0] = strdup(username);
-        token2[1] = strdup("client");
+        token2[0] = strdup("client");
+        token2[1] = strdup(username);
         token2[2] = strdup(serverName);
         token2[3] = strdup(portNo);
         token2[4] = strdup("compile");
@@ -90,16 +94,17 @@ int main(int argc, char* argv[]) {
       // set up compiling
       //first check to see if server is set up
       if(serverSet == 1) {
-        // invoke client with form ./client $serverName $Port compile $[compliation]
-        token2 = malloc(sizeof(char*)*4);
+        // invoke client with form ./client $username $serverName $Port compile $[compliation]
+        token2 = malloc(sizeof(char*)*5);
         token2[0] = strdup("client");
-        token2[1] = strdup(serverName);
-        token2[2] = strdup(portNo);
-        token2[3] = strdup("run");
+        token2[1] = strdup(username);
+        token2[2] = strdup(serverName);
+        token2[3] = strdup(portNo);
+        token2[4] = strdup("run");
         //merge arrays
-        char** command = malloc(sizeof(char*)*(TOKEN_BUFSIZE+4));
-        memcpy(command, token2, sizeof(char*)*4);
-        memcpy(command+4, token, sizeof(char*)*TOKEN_BUFSIZE);
+        char** command = malloc(sizeof(char*)*(TOKEN_BUFSIZE+5));
+        memcpy(command, token2, sizeof(char*)*5);
+        memcpy(command+5, token, sizeof(char*)*TOKEN_BUFSIZE);
 
         // create a child to exec the command
         pid_t child = fork();
@@ -127,7 +132,6 @@ int main(int argc, char* argv[]) {
       printf("Enter the port number: ");
       getline(&portNo, &size, stdin);
       // change newline to end of line
-      char *pos;
       if ((pos=strchr(serverName, '\n')) != NULL)
         *pos = '\0';
       if ((pos=strchr(portNo, '\n')) != NULL)

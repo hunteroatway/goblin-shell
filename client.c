@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
   strcpy(hostname, argv[2]);
   strcpy(portnum, argv[3]);
   strcpy(task, argv[4]);
+  printf("Username: %s \n host %s \n port %s \n task %s\n", username, hostname, portnum, task);
   return 0;
  
 	// zero out sock_addr struct
@@ -98,8 +99,6 @@ int main(int argc, char* argv[]) {
     }
     close(sock);
   }
-
-
 
 	return EXIT_SUCCESS;
 }
