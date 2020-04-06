@@ -55,7 +55,14 @@ int main(int argc, char* argv[]) {
       exit(0);
     } else if (!strcmp(first, "help") || !strcmp(first, "h")){
       // print some helpful stuff
-      printf("You can use this shell in order to execute any commands from a unix system. Example usage is ./example.c arg1 arg2 \n");
+      printf("This shell is designed to allow the user to designate various code files to be remotely compiled and executed for testing. \n");
+      printf("You can set the server to compile on by using the command \"setServer\" and filling out the host name and port address.\n");
+      printf("The server program will have to be running on the target server in order for the remote compile to work.\n");
+      printf("Use the command \"compile\" followed by the files to have them remotely compiled on the chosen server. \n");
+      printf("Usage: compile (files) (flags)");
+      printf("Use the command \"run\" to run the compiled program on the remote system. (You will have to send the files to compile prior to using run) \n");
+      printf("Usage: run (programName) (arguments)");
+      printf("You can also use this shell in order to execute any commands from a unix system locally. Example usage is ./example.c arg1 arg2 \n");
       printf("To quit the shell type \"exit, lo, quit or shutdown\". \n");
     }  else if (!strcmp(first, "compile")){
       // set up compiling
