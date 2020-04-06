@@ -12,7 +12,7 @@
 #define TOKEN_BUFSIZE 64 
 
 int main(int argc, char* argv[]) {
-  struct sockaddr_in sock_addr;
+	struct sockaddr_in sock_addr;
   struct hostent *host;
   socklen_t sock_len;
   int sock, sock_fd, port; 
@@ -20,8 +20,11 @@ int main(int argc, char* argv[]) {
   int num_char = 512;
   char ch[512];
   char message[BUFSIZE];  // used to send message to server process
-  char scpFiles[BUFSIZE]; // used to scp the files
   char* word;
+  char* pos;
+
+  char** list = malloc(sizeof(char*) * TOKEN_BUFSIZE);
+  int x = 2;
 
   // is given in form ./client $username $serverName $Port compile $[compliation] 
   char portnum[20];
@@ -42,10 +45,10 @@ int main(int argc, char* argv[]) {
   // prepare the message to be sent to server
   if (!strcmp(task , "compile")) {
     int i = 5;
-    strcpy(message, task);
+    strcpy(message, task); 
     strcat(message, " ");
-    strcpy(scpFiles, "goblin.txt");
-    strcat(scpFiles, " ");
+    list[0] = strdup("scp");
+    list[1] = strdup("goblin.txt");
     while(argv[i] != NULL){      
       if(argv[i][0] == '-') {
         strcat(message, argv[i]);
@@ -58,8 +61,8 @@ int main(int argc, char* argv[]) {
         } else {
           strcat(message, argv[i]);
         }
-        strcat(scpFiles, argv[i]);
-        strcat(scpFiles, " ");
+        list[x] = strdup(argv[i]);
+        x++;
         strcat(message, " ");
       }
       i++;
@@ -77,7 +80,6 @@ int main(int argc, char* argv[]) {
     printf("You have not send a valid command to client. Type \"help\" in the shell for more information. \n");
     return 0;
   }
-
 	// zero out sock_addr struct
 	bzero((char *)&sock_addr, sizeof(sock_addr));
 	
@@ -87,11 +89,11 @@ int main(int argc, char* argv[]) {
 	port = atoi(portnum);
 	sock_addr.sin_port = htons(port);
 
-  // copy client information into socket data structure
-  memcpy(&sock_addr.sin_addr, host->h_addr, host->h_length);
+	// copy client information into socket data structure
+	memcpy(&sock_addr.sin_addr, host->h_addr, host->h_length);
 
-  // create socket file descriptor
-  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+	// create socket file descriptor
+	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
     perror("socket failed");
     exit(1);
   }
@@ -105,19 +107,24 @@ int main(int argc, char* argv[]) {
   char dir[BUFSIZE];
   int dir_size = read(sock, dir, BUFSIZE);
   fflush(stdout);
-  printf("%s", dir);
+  if ((pos=strchr(dir, '\n')) != NULL)
+    *pos = '\0';
 
    if (!strcmp(task , "compile")) {
 
      // path for the scp. combine username, server and path
     char scpPath[512];
+    char scp[512];
     strcpy(scpPath, username);
     strcat(scpPath, "@");
     strcat(scpPath, hostname);
     strcat(scpPath,":");
     strcat(scpPath, dir);
-    strcat(scpFiles, scpPath);
-    printf("the SCPpath is %s \n", scpFiles);
+    
+    // push the path into the list and null terminate list
+    list[x] = strdup(scpPath);
+    list[x+1] = NULL;
+
 
     // move a file over
     pid_t child = fork();
@@ -126,8 +133,10 @@ int main(int argc, char* argv[]) {
       perror("fork");
       exit(0);
     } else if (child == 0) {
-      execl("/usr/bin/scp", "scp", scpFiles, NULL);
-      perror("exec failure");
+      //execl("/usr/bin/scp", "scp", scpFiles, scpPath, NULL);
+      execvp("scp", list);
+      //execlp("scp", scp, NULL);
+      perror("scp failure");
       exit(1);
 
     } else {
@@ -144,16 +153,13 @@ int main(int argc, char* argv[]) {
      return 0;
    }
  
-/*  while((num_char=read(sock, ch, 512)) > 0) {
+/*   while((num_char=read(sock, ch, 512)) > 0) {
     if (write(1, ch, num_char) < num_char) {
       perror("write failed");
       exit(1);
-    }*/
+    }
     close(sock);
-  }
+  } */
 
 	return EXIT_SUCCESS;
- // }
-
-  return EXIT_SUCCESS;
 }
