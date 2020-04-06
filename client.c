@@ -12,11 +12,10 @@
 #define TOKEN_BUFSIZE 64 
 
 int main(int argc, char* argv[]) {
-	struct sockaddr_in sock_addr;
+  struct sockaddr_in sock_addr;
   struct hostent *host;
   socklen_t sock_len;
   int sock, sock_fd, port; 
-
 
   int num_char = 512;
   char ch[512];
@@ -88,11 +87,11 @@ int main(int argc, char* argv[]) {
 	port = atoi(portnum);
 	sock_addr.sin_port = htons(port);
 
-	// copy client information into socket data structure
-	memcpy(&sock_addr.sin_addr, host->h_addr, host->h_length);
+  // copy client information into socket data structure
+  memcpy(&sock_addr.sin_addr, host->h_addr, host->h_length);
 
-	// create socket file descriptor
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+  // create socket file descriptor
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
     perror("socket failed");
     exit(1);
   }
@@ -145,13 +144,16 @@ int main(int argc, char* argv[]) {
      return 0;
    }
  
-  while((num_char=read(sock, ch, 512)) > 0) {
+/*  while((num_char=read(sock, ch, 512)) > 0) {
     if (write(1, ch, num_char) < num_char) {
       perror("write failed");
       exit(1);
-    }
+    }*/
     close(sock);
   }
 
 	return EXIT_SUCCESS;
+ // }
+
+  return EXIT_SUCCESS;
 }

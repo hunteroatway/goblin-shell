@@ -8,10 +8,10 @@ Download the necessary files using the following git command from your terminal:
 git clone https://github.com/hunteroatway/goblin-shell.git
 ```
 
-Compile the shell using the Makefile included in the repository. Running 'make' via your terminal will build the necessary files required for operation of the execution environment. 
+Compile the shell using the Makefile included in the repository. Running **make** via your terminal will build the necessary files required for operation of the execution environment. 
 
 ## Usage
-Run the shell by executing the following on your terminal. 
+Run the shell by executing the following on your terminal.
 
 ```
 ./goblin-shell <remote-host>
