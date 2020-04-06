@@ -102,7 +102,9 @@ int main(int argc, char* argv[]) {
         close(pfd[1]);
         wait(&status);
 
-        if (read(pfd[0], dir, BUFSIZE)!=-1){
+        int nread = read(pfd[0], dir, BUFSIZE);
+        if (nread!=-1){
+            dir[nread] = '\0';
             fflush(stdout);
         }
 

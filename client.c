@@ -18,14 +18,21 @@ int main(int argc, char* argv[]) {
 
   int num_char = 512;
   char ch[512];
-
   char portnum[20];
   char hostname[20];
-  printf("\n hostname: ");
+  char username[50];
+  char task[20];
+ /*  printf("\n hostname: ");
   scanf("%s", hostname);
  
   printf("\n port: ");
-  scanf("%s", portnum);
+  scanf("%s", portnum); */
+  strcpy(username, argv[1]);
+  strcpy(hostname, argv[2]);
+  strcpy(portnum, argv[3]);
+  strcpy(task, argv[4]);
+  printf("Username: %s \n host %s \n port %s \n task %s\n", username, hostname, portnum, task);
+  return 0;
  
   // zero out sock_addr struct
   bzero((char *)&sock_addr, sizeof(sock_addr));
@@ -54,7 +61,18 @@ int main(int argc, char* argv[]) {
   char dir[BUFSIZE];
   int dir_size = read(sock, dir, BUFSIZE);
   fflush(stdout);
+  printf("the path is %s \n", dir);
 
+  // path for the scp. combine username, server and path
+  char scpPath[512];
+  strcpy(scpPath, username);
+  strcat(scpPath, "@");
+  strcat(scpPath, hostname);
+  strcat(scpPath,":");
+  strcat(scpPath, dir);
+  printf("the SCPpath is %s \n", scpPath);
+
+ // try to move a file over
   char path[512];  
   strcat(path, "hro169@");
   strcat(path, hostname);  
@@ -62,12 +80,14 @@ int main(int argc, char* argv[]) {
   strcat(path, dir);
 
   // try to move a file over
+
   pid_t child = fork();
   int status;
   if(child == -1){
     perror("fork");
     exit(0);
   } else if (child == 0) {
+    execl("/usr/bin/scp", "scp", "test/test.txt", scpPath, NULL);
     execl("/usr/bin/scp", "scp", "goblin.txt", path, NULL);
     perror("exec failure");
     exit(1);
@@ -82,6 +102,9 @@ int main(int argc, char* argv[]) {
       exit(1);
     }*/
     close(sock);
+  }
+
+	return EXIT_SUCCESS;
  // }
 
   return EXIT_SUCCESS;

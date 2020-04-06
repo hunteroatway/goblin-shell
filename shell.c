@@ -1,4 +1,3 @@
-
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,13 +20,22 @@ void printImage();
 int main(int argc, char* argv[]) {
   char* cmd;
   char** token;
+  char** token2;
   int status; 
   size_t size = 0;
   char* username = NULL;
+  char* serverName = NULL;
+  char* portNo = NULL;
+  int port;
+  int serverSet = 0;
+  char *pos;
 
   //prompt for username
   printf("Welcome to goblin-shell. Please enter your username to continue: \n");
   getline(&username, &size, stdin);
+  // set new line to end of string
+  if ((pos=strchr(username, '\n')) != NULL)
+    *pos = '\0';
   printf("goblin-shell Welcome %s\n", username);
   username[strlen(username)-1] = 0; 
  
@@ -50,7 +58,95 @@ int main(int argc, char* argv[]) {
       // print some helpful stuff
       printf("You can use this shell in order to execute any commands from a unix system. Example usage is ./example.c arg1 arg2 \n");
       printf("To quit the shell type \"exit, lo, quit or shutdown\". \n");
-    } else {
+    }  else if (!strcmp(first, "compile")){
+      // set up compiling
+      //first check to see if server is set up
+      if(serverSet == 1) {
+        // invoke client with form ./client $serverName $Port compile $[compliation]
+        token2 = malloc(sizeof(char*)*5);
+        token2[0] = strdup("client");
+        token2[1] = strdup(username);
+        token2[2] = strdup(serverName);
+        token2[3] = strdup(portNo);
+        token2[4] = strdup("compile");
+        //merge arrays
+        char** command = malloc(sizeof(char*)*(TOKEN_BUFSIZE+5));
+        memcpy(command, token2, sizeof(char*)*5);
+        memcpy(command+5, token, sizeof(char*)*TOKEN_BUFSIZE);
+
+        // create a child to exec the command
+        pid_t child = fork();
+        if(child > 0) { // parent
+          wait(&status);
+          free(command);
+        } else if (child == 0) { //child
+          execv("./client", command);
+          perror("Failed to exec. Type help for more information on usage");
+          exit(0);
+        } else { // failed to fork
+          perror("Failed to fork");
+        }
+      } else {
+        // print they need to set server
+        printf("You need to set a server to connect to. Use \"setServer\" to declare the target server.\n");
+      }
+
+    } else if (!strcmp(first, "run")){
+      // set up compiling
+      //first check to see if server is set up
+      if(serverSet == 1) {
+        // invoke client with form ./client $username $serverName $Port compile $[compliation]
+        token2 = malloc(sizeof(char*)*5);
+        token2[0] = strdup("client");
+        token2[1] = strdup(username);
+        token2[2] = strdup(serverName);
+        token2[3] = strdup(portNo);
+        token2[4] = strdup("run");
+        //merge arrays
+        char** command = malloc(sizeof(char*)*(TOKEN_BUFSIZE+5));
+        memcpy(command, token2, sizeof(char*)*5);
+        memcpy(command+5, token, sizeof(char*)*TOKEN_BUFSIZE);
+
+        // create a child to exec the command
+        pid_t child = fork();
+        if(child > 0) { // parent
+          wait(&status);
+          free(command);
+        } else if (child == 0) { //child
+          execv("./client", command);
+          perror("Failed to exec. Type help for more information on usage");
+          exit(0);
+        } else { // failed to fork
+          perror("Failed to fork");
+        }
+      } else {
+        // print they need to set server
+        printf("You need to set a server to connect to. Use \"setServer\" to declare the target server.\n");
+      }
+
+    }else if (!strcmp(first, "setServer") || !strcmp(first, "set") && !strcmp(token[1], "Server")){
+      // set up the server
+      printf("Enter the host name: ");
+      fflush(stdout);
+      getline(&serverName, &size, stdin);
+      fflush(stdout);
+      printf("Enter the port number: ");
+      getline(&portNo, &size, stdin);
+      // change newline to end of line
+      if ((pos=strchr(serverName, '\n')) != NULL)
+        *pos = '\0';
+      if ((pos=strchr(portNo, '\n')) != NULL)
+        *pos = '\0';
+
+      //cast port to int
+      port = atoi(portNo);
+
+      //check for valid port
+      if(port < 65535 && port > 1024)
+        serverSet = 1;
+      else 
+      printf("Invalid port. Please try again with a new port number. \n");
+    }else {
       // create a child to exec the command
       pid_t child = fork();
       if(child > 0) { // parent
