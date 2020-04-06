@@ -11,9 +11,7 @@
 #include <netdb.h>
 
 #define PORT 0
-#define BUFSIZE 75
-
-int start = 1;
+#define BUFSIZE 512
 
 int main(int argc, char* argv[]) {
   struct sockaddr_in sock_addr;
@@ -69,50 +67,46 @@ int main(int argc, char* argv[]) {
     }
     
     // get current directory 
-    if(start == 1) {
+    pid_t child;
+    int pfd[2];
+    char dir[BUFSIZE];
+    int status;
 
-      start = 0;
-      pid_t child;
-      int pfd[2];
-      char dir[BUFSIZE];
-      int status;
-
-      if(pipe(pfd) == -1) {
-        perror("Pipe failue");
-        exit(1);
-      }
-
-      child = fork();
-      if(child == -1){
-        perror("fork failed");
-        exit(1);
-      } else if (child == 0) { // child
-        // close read end
-        close(pfd[0]);
-
-        // redirect std out to pipe
-        dup2(pfd[1], fileno(stdout));
-
-        // exec pwd
-        if(execlp("pwd", "pwd", NULL) == -1){
-          perror("Error in calling exec!");
-          exit(0);
-        }
-      } else { //parent
-        close(pfd[1]);
-        wait(&status);
-
-        int nread = read(pfd[0], dir, BUFSIZE);
-        if (nread!=-1){
-            dir[nread] = '\0';
-            fflush(stdout);
-        }
-
-        // send current directory to client
-        write(sock_fd, dir, strlen(dir));
-        printf("%s", dir);
-      }
+    if(pipe(pfd) == -1) {
+      perror("Pipe failue");
+      exit(1);
     }
+
+    child = fork();
+    if(child == -1){
+      perror("fork failed");
+      exit(1);
+    } else if (child == 0) { // child
+      // close read end
+      close(pfd[0]);
+      // redirect std out to pipe
+      dup2(pfd[1], fileno(stdout));
+
+      // exec pwd
+      if(execlp("pwd", "pwd", NULL) == -1){
+        perror("Error in calling exec!");
+        exit(0);
+      }
+    } else { //parent
+      close(pfd[1]);
+      wait(&status);
+
+      int nread = read(pfd[0], dir, BUFSIZE);
+      if (nread!=-1){
+          dir[nread] = '\0';
+          fflush(stdout);
+      }
+
+      // send current directory to client
+      write(sock_fd, dir, strlen(dir));
+      printf("%s", dir);
+    }
+    
 
     int file = open("test.file", O_RDONLY);
     if(file == -1)
