@@ -192,7 +192,7 @@ void startServer(int status, char* uname, char* server) {
   strcat(copyPath, "@");
   strcat(copyPath, server);
   strcat(copyPath, ":");
-  strcat(copyPath, "~/server.c");
+  strcat(copyPath, "~/hello.c");
 
   char sshPath[256] = {0};
   strcat(sshPath, uname);
@@ -202,8 +202,11 @@ void startServer(int status, char* uname, char* server) {
   if(child > 0) 
     wait(&status);
   else if (child == 0) {
-    //execl("/usr/bin/scp", "scp -q", "server.c", copyPath, NULL);
-    execl("/usr/bin/ssh", "ssh", sshPath, "\'gcc\'", "\'server.c\'", "\'-o\'", "\'server\'", NULL);
+    // TODO: These will not run if both are un-commented. Need to fix this. Maybe multiple processes (double fork)?
+    //execl("/usr/bin/scp", "scp -q", "hello.c", copyPath, NULL);
+    //execl("/usr/bin/ssh", "ssh", sshPath, "\'gcc\'", "\'hello.c\'", "\'-o\'", "\'hello\'", NULL);
+    execl("/usr/bin/ssh", "ssh", sshPath, "\'hello\'", NULL);
+
     perror("Failed to exec. Type help for more information.");
     exit(0);
   } 
