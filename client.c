@@ -17,6 +17,9 @@ int main(int argc, char* argv[]) {
   socklen_t sock_len;
   int sock, sock_fd, port; 
 
+  printf("Client started...");
+
+
   int num_char = 512;
   char ch[512];
   char message[BUFSIZE];  // used to send message to server process
@@ -41,14 +44,16 @@ int main(int argc, char* argv[]) {
   strcpy(hostname, argv[2]);
   strcpy(portnum, argv[3]);
   strcpy(task, argv[4]);
- 
+
+  printf("command sent by shell: %s %s %s %s", username, hostname, portnum, task);
+
   // prepare the message to be sent to server
   if (!strcmp(task , "compile")) {
     int i = 5;
     strcpy(message, task); 
-    strcat(message, " ");
+    strcat(message, " "); // message = "compile "
     list[0] = strdup("scp");
-    list[1] = strdup("goblin.txt");
+    list[1] = strdup("goblin.txt"); // list = "scp goblin.txt"
     while(argv[i] != NULL){      
       if(argv[i][0] == '-') {
         strcat(message, argv[i]);

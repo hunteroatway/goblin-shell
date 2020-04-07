@@ -72,35 +72,14 @@ int main(int argc, char* argv[]) {
       printf("\trun\t  run a program on the remote host \n");
       printf("\thelp\t  display usage information \n");
       printf("\texit\t  exit the shell \n\n");
-    } else if (!strcmp(token[0], "copy")) {
-        int i = 1;
-        char copyPath[256] = {0};
-
-        while (token[i] != NULL) {
-          // TODO: check for failure and forking needs to be done for as many files as we will have I
-          //strcat(copyPath, token[i]);
-          //execl("/usr/bin/scp", "scp -q", token[i], copyPath, NULL);
-        
-          // testing for system
-          strcat(copyPath, "scp -q ");
-          strcat(copyPath, token[i]);
-          strcat(copyPath, " ");
-          strcat(copyPath, username);
-          strcat(copyPath, "@");
-          strcat(copyPath, serverName);
-          strcat(copyPath, ":");
-          strcat(copyPath, token[i]);
-          system(copyPath);
-          i++;
-        }
-    }  else if (!strcmp(token[0], "compile")) {
-        // invoke client with form ./client username servername port compile
-        char** command = malloc(sizeof(char*)*5);
+    } else if (!strcmp(token[0], "compile")) {
+        // client $username $serverName $Port compile $[compliation]
+        char** command = malloc(sizeof(char*)*(TOKEN_BUFSIZE+5));
         command[0] = strdup("client");
         command[1] = strdup(username);
         command[2] = strdup(serverName);
         command[3] = strdup(portNo);
-        command[4] = strdup("compile");
+        memcpy(command+4, token, sizeof(char*)*TOKEN_BUFSIZE);
 
         // create a child to exec the command
         pid_t child = fork();
@@ -115,13 +94,13 @@ int main(int argc, char* argv[]) {
           perror("Failed to fork");
         }
     } else if (!strcmp(token[0], "run")) {
-        // invoke client with form ./client username servername port run
-        char** command = malloc(sizeof(char*)*5);
+        //./client $username $serverName $Port run $[program & arguments]
+        char** command = malloc(sizeof(char*)*(TOKEN_BUFSIZE+5));
         command[0] = strdup("client");
         command[1] = strdup(username);
         command[2] = strdup(serverName);
         command[3] = strdup(portNo);
-        command[4] = strdup("run");
+        memcpy(command+4, token, sizeof(char*)*TOKEN_BUFSIZE);
 
         // create a child to exec the command
         pid_t child = fork();
@@ -226,11 +205,6 @@ void startServer(int status, char* uname, char* server) {
     //execl("/usr/bin/ssh", "ssh", sshPath, "\'gcc\'", "\'hello.c\'", "\'-o\'", "\'hello\'", NULL);
     //execl("/usr/bin/ssh", "ssh", sshPath, "\'hello\'", "\'>\'", "\'.\\exec-log.txt\'", NULL);
     execl("/usr/bin/ssh", "ssh", sshPath, "\'hello\'", NULL);
-
-    // current standing 
-    // file copy works
-    // compiling works
-    // 
 
     perror("Failed to exec. Type help for more information.");
     exit(0);
