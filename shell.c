@@ -6,15 +6,15 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+// globals
 #define TOKEN_BUFSIZE 64 
 #define MAX 128
-
-// used for getting the value of MAX inside the scanf. Converts max to the literal x to be concatinated
 #define S2(x) #x
 #define S(x) S2(x)
 
-char* get_command();
-char** parse_command(char*);
+// function declarations
+char* getCommand();
+char** parseCommand(char*);
 void printImage();
 
 int main(int argc, char* argv[]) {
@@ -23,38 +23,43 @@ int main(int argc, char* argv[]) {
   char** token2;
   int status; 
   size_t size = 0;
+  int serverSet = 0;
+  char *pos;
+  int port;
   char* username = NULL;
   char* serverName = NULL;
   char* portNo = NULL;
-  int port;
-  int serverSet = 0;
-  char *pos;
 
-  //prompt for username
-  printf("Welcome to goblin-shell. Please enter your username to continue: \n");
-  getline(&username, &size, stdin);
-  // set new line to end of string
-  if ((pos=strchr(username, '\n')) != NULL)
-    *pos = '\0';
-  printf("goblin-shell Welcome %s\n", username);
-  username[strlen(username)-1] = 0; 
- 
+  // parse arguments to gather required information 
+  // TODO: should the help code go here??
+  if (argc != 7) {
+    printf("usage: shell [-u USERNAME] [-s SERVER] [-p PORT] [-h HELP] \n\n");
+    printf("required arguments: \n");
+    printf("\t-u\tusername information \n");
+    printf("\t-s\tserver information \n");
+    printf("\t-p\tport information \n\n");
+    printf("optional arguments: \n");
+    printf("\t-h\thelp information \n\n");
+    exit(1);
+  } else {
+    username = argv[2];
+    serverName = argv[4];
+    portNo = argv[6];
+  }
+  
   do {
     printf("goblin-shell > ");
-    cmd = get_command();
-    token = parse_command(cmd);
-    char* first = malloc(sizeof(char*));
-    strcpy(first, token[0]);
-
+    cmd = getCommand();
+    token = parseCommand(cmd);
+  
     // check to see if user wants help or exit
-    if(!strcmp(first, "exit") || !strcmp(first, "lo") || !strcmp(first, "quit") || !strcmp(first, "shutdown")){
+    if(!strcmp(token[0], "exit") || !strcmp(token[0], "lo") || !strcmp(token[0], "quit") || !strcmp(token[0], "shutdown")){
       printf("goblin-shell terminating...\n");
       printImage();
-      free(first);
       free(cmd);
       free(token);
       exit(0);
-    } else if (!strcmp(first, "help") || !strcmp(first, "h")){
+    } else if (!strcmp(token[0], "help") || !strcmp(token[0], "h")){
       // print some helpful stuff
       printf("This shell is designed to allow the user to designate various code files to be remotely compiled and executed for testing. \n");
       printf("You can set the server to compile on by using the command \"setServer\" and filling out the host name and port address.\n");
@@ -65,7 +70,7 @@ int main(int argc, char* argv[]) {
       printf("Usage: run (programName) (arguments)");
       printf("You can also use this shell in order to execute any commands from a unix system locally. Example usage is ./example.c arg1 arg2 \n");
       printf("To quit the shell type \"exit, lo, quit or shutdown\". \n");
-    }  else if (!strcmp(first, "compile")){
+    }  else if (!strcmp(token[0], "compile")){
       // set up compiling
       //first check to see if server is set up
       if(serverSet == 1) {
@@ -98,7 +103,7 @@ int main(int argc, char* argv[]) {
         printf("You need to set a server to connect to. Use \"setServer\" to declare the target server.\n");
       }
 
-    } else if (!strcmp(first, "run")){
+    } else if (!strcmp(token[0], "run")){
       // set up compiling
       //first check to see if server is set up
       if(serverSet == 1) {
@@ -131,7 +136,7 @@ int main(int argc, char* argv[]) {
         printf("You need to set a server to connect to. Use \"setServer\" to declare the target server.\n");
       }
 
-    }else if (!strcmp(first, "setServer") || !strcmp(first, "set") && !strcmp(token[1], "Server")){
+    }else if (!strcmp(token[0], "setServer") || !strcmp(token[0], "set") && !strcmp(token[1], "Server")){
       // set up the server
       printf("Enter the host name: ");
       fflush(stdout);
@@ -178,7 +183,6 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    free(first);
     free(cmd);
     free(token);
   } while (1);
@@ -186,14 +190,14 @@ int main(int argc, char* argv[]) {
   return EXIT_SUCCESS;
 }
 
-char* get_command() {
+char* getCommand() {
   char* cmd = NULL;
   size_t size = 0;
   getline(&cmd, &size, stdin);
   return cmd;
 }
 
-char** parse_command(char* _cmd) {
+char** parseCommand(char* _cmd) {
   int size = TOKEN_BUFSIZE;
   int pos = 0;  
   char* delim = " \n\t";
@@ -229,18 +233,16 @@ char** parse_command(char* _cmd) {
 }
 
 void printImage() {
-
   FILE *file = NULL;
+  char read[MAX];
+
   if((file = fopen("goblin.txt", "r")) == NULL){
     perror("Error opening file");
     return;
   }
 
-  char read[MAX];
   while(fgets(read, sizeof(read), file) != NULL)
     printf("%s", read);
-
     return;
-
     fclose(file);
 }
