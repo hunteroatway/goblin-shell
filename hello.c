@@ -2,6 +2,6 @@
 #include <stdlib.h>
 
 int main() { 
-  system("mkdir test");
+  printf("hello world!");
   return 0;
 }

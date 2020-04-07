@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 // global definitions
-#define TOKEN_BUFSIZE 64 
+#define TOKEN_BUFSIZE 64
 #define MAX 128
 #define S2(x) #x
 #define S(x) S2(x)
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 
   // parse arguments to gather required information 
   if (argc != 7) {
-    printf("usage: shell [-u USERNAME] [-s SERVER] [-p PORT] \n\n");
+    printf("usage: goblin-shell [-u USERNAME] [-s SERVER] [-p PORT] \n\n");
     printf("required arguments: \n");
     printf("\t-u\tusername information \n");
     printf("\t-s\tserver information \n");
@@ -49,8 +49,8 @@ int main(int argc, char* argv[]) {
   }
   
   do {
-    if (SERV_RUNNING == 0)
-      startServer(status, username, serverName);
+    //if (SERV_RUNNING == 0)
+      //startServer(status, username, serverName);
     
     printf("goblin-shell > ");
     cmd = getCommand();
@@ -58,22 +58,41 @@ int main(int argc, char* argv[]) {
   
     // check to see if user wants help or exit
     if (!strcmp(token[0], "exit") || !strcmp(token[0], "lo") || !strcmp(token[0], "quit") || !strcmp(token[0], "shutdown")) {
-      printf("goblin-shell terminating...\n");
-      printImage();
+      printf("Goodbye! \n");
+      //printImage();
       free(cmd);
       free(token);
       exit(0);
     } else if (!strcmp(token[0], "help") || !strcmp(token[0], "h")) {
       // print some helpful stuff
-      printf("This shell is designed to allow the user to designate various code files to be remotely compiled and executed for testing. \n");
-      printf("You can set the server to compile on by using the command \"setServer\" and filling out the host name and port address.\n");
-      printf("The server program will have to be running on the target server in order for the remote compile to work.\n");
-      printf("Use the command \"compile\" followed by the files to have them remotely compiled on the chosen server. \n");
-      printf("Usage: compile (files) (flags)");
-      printf("Use the command \"run\" to run the compiled program on the remote system. (You will have to send the files to compile prior to using run) \n");
-      printf("Usage: run (programName) (arguments)");
-      printf("You can also use this shell in order to execute any commands from a unix system locally. Example usage is ./example.c arg1 arg2 \n");
-      printf("To quit the shell type \"exit, lo, quit or shutdown\". \n");
+      printf("usage: goblin-shell [COMMANDS] \n\n");
+      printf("commands: \n");
+      printf("\tcopy\t  copy a file to the remote host \n");
+      printf("\tcompile\t  compile a file on the remote host \n");
+      printf("\trun\t  run a program on the remote host \n");
+      printf("\thelp\t  display usage information \n");
+      printf("\texit\t  exit the shell \n\n");
+    } else if (!strcmp(token[0], "copy")) {
+        int i = 1;
+        char copyPath[256] = {0};
+
+        while (token[i] != NULL) {
+          // TODO: check for failure and forking needs to be done for as many files as we will have I
+          //strcat(copyPath, token[i]);
+          //execl("/usr/bin/scp", "scp -q", token[i], copyPath, NULL);
+        
+          // testing for system
+          strcat(copyPath, "scp -q ");
+          strcat(copyPath, token[i]);
+          strcat(copyPath, " ");
+          strcat(copyPath, username);
+          strcat(copyPath, "@");
+          strcat(copyPath, serverName);
+          strcat(copyPath, ":");
+          strcat(copyPath, token[i]);
+          system(copyPath);
+          i++;
+        }
     }  else if (!strcmp(token[0], "compile")) {
         // invoke client with form ./client username servername port compile
         char** command = malloc(sizeof(char*)*5);
@@ -205,7 +224,13 @@ void startServer(int status, char* uname, char* server) {
     // TODO: These will not run if both are un-commented. Need to fix this. Maybe multiple processes (double fork)?
     //execl("/usr/bin/scp", "scp -q", "hello.c", copyPath, NULL);
     //execl("/usr/bin/ssh", "ssh", sshPath, "\'gcc\'", "\'hello.c\'", "\'-o\'", "\'hello\'", NULL);
+    //execl("/usr/bin/ssh", "ssh", sshPath, "\'hello\'", "\'>\'", "\'.\\exec-log.txt\'", NULL);
     execl("/usr/bin/ssh", "ssh", sshPath, "\'hello\'", NULL);
+
+    // current standing 
+    // file copy works
+    // compiling works
+    // 
 
     perror("Failed to exec. Type help for more information.");
     exit(0);
