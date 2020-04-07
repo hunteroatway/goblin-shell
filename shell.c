@@ -5,25 +5,28 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <stdbool.h>
 
-// globals
+// global definitions
 #define TOKEN_BUFSIZE 64 
 #define MAX 128
 #define S2(x) #x
 #define S(x) S2(x)
 
+// globals
+unsigned short SERV_RUNNING = 0;
+
 // function declarations
 char* getCommand();
 char** parseCommand(char*);
 void printImage();
+void startServer(int, char*, char*);
 
 int main(int argc, char* argv[]) {
   char* cmd;
   char** token;
-  char** token2;
   int status; 
   size_t size = 0;
-  int serverSet = 0;
   char *pos;
   int port;
   char* username = NULL;
@@ -31,35 +34,36 @@ int main(int argc, char* argv[]) {
   char* portNo = NULL;
 
   // parse arguments to gather required information 
-  // TODO: should the help code go here??
   if (argc != 7) {
-    printf("usage: shell [-u USERNAME] [-s SERVER] [-p PORT] [-h HELP] \n\n");
+    printf("usage: shell [-u USERNAME] [-s SERVER] [-p PORT] \n\n");
     printf("required arguments: \n");
     printf("\t-u\tusername information \n");
     printf("\t-s\tserver information \n");
     printf("\t-p\tport information \n\n");
-    printf("optional arguments: \n");
-    printf("\t-h\thelp information \n\n");
     exit(1);
   } else {
     username = argv[2];
     serverName = argv[4];
     portNo = argv[6];
+    port = atoi(portNo);
   }
   
   do {
+    if (SERV_RUNNING == 0)
+      startServer(status, username, serverName);
+    
     printf("goblin-shell > ");
     cmd = getCommand();
     token = parseCommand(cmd);
   
     // check to see if user wants help or exit
-    if(!strcmp(token[0], "exit") || !strcmp(token[0], "lo") || !strcmp(token[0], "quit") || !strcmp(token[0], "shutdown")){
+    if (!strcmp(token[0], "exit") || !strcmp(token[0], "lo") || !strcmp(token[0], "quit") || !strcmp(token[0], "shutdown")) {
       printf("goblin-shell terminating...\n");
       printImage();
       free(cmd);
       free(token);
       exit(0);
-    } else if (!strcmp(token[0], "help") || !strcmp(token[0], "h")){
+    } else if (!strcmp(token[0], "help") || !strcmp(token[0], "h")) {
       // print some helpful stuff
       printf("This shell is designed to allow the user to designate various code files to be remotely compiled and executed for testing. \n");
       printf("You can set the server to compile on by using the command \"setServer\" and filling out the host name and port address.\n");
@@ -70,21 +74,14 @@ int main(int argc, char* argv[]) {
       printf("Usage: run (programName) (arguments)");
       printf("You can also use this shell in order to execute any commands from a unix system locally. Example usage is ./example.c arg1 arg2 \n");
       printf("To quit the shell type \"exit, lo, quit or shutdown\". \n");
-    }  else if (!strcmp(token[0], "compile")){
-      // set up compiling
-      //first check to see if server is set up
-      if(serverSet == 1) {
-        // invoke client with form ./client $serverName $Port compile $[compliation]
-        token2 = malloc(sizeof(char*)*5);
-        token2[0] = strdup("client");
-        token2[1] = strdup(username);
-        token2[2] = strdup(serverName);
-        token2[3] = strdup(portNo);
-        token2[4] = strdup("compile");
-        //merge arrays
-        char** command = malloc(sizeof(char*)*(TOKEN_BUFSIZE+5));
-        memcpy(command, token2, sizeof(char*)*5);
-        memcpy(command+5, token, sizeof(char*)*TOKEN_BUFSIZE);
+    }  else if (!strcmp(token[0], "compile")) {
+        // invoke client with form ./client username servername port compile
+        char** command = malloc(sizeof(char*)*5);
+        command[0] = strdup("client");
+        command[1] = strdup(username);
+        command[2] = strdup(serverName);
+        command[3] = strdup(portNo);
+        command[4] = strdup("compile");
 
         // create a child to exec the command
         pid_t child = fork();
@@ -98,26 +95,14 @@ int main(int argc, char* argv[]) {
         } else { // failed to fork
           perror("Failed to fork");
         }
-      } else {
-        // print they need to set server
-        printf("You need to set a server to connect to. Use \"setServer\" to declare the target server.\n");
-      }
-
-    } else if (!strcmp(token[0], "run")){
-      // set up compiling
-      //first check to see if server is set up
-      if(serverSet == 1) {
-        // invoke client with form ./client $username $serverName $Port compile $[compliation]
-        token2 = malloc(sizeof(char*)*5);
-        token2[0] = strdup("client");
-        token2[1] = strdup(username);
-        token2[2] = strdup(serverName);
-        token2[3] = strdup(portNo);
-        token2[4] = strdup("run");
-        //merge arrays
-        char** command = malloc(sizeof(char*)*(TOKEN_BUFSIZE+5));
-        memcpy(command, token2, sizeof(char*)*5);
-        memcpy(command+5, token, sizeof(char*)*TOKEN_BUFSIZE);
+    } else if (!strcmp(token[0], "run")) {
+        // invoke client with form ./client username servername port run
+        char** command = malloc(sizeof(char*)*5);
+        command[0] = strdup("client");
+        command[1] = strdup(username);
+        command[2] = strdup(serverName);
+        command[3] = strdup(portNo);
+        command[4] = strdup("run");
 
         // create a child to exec the command
         pid_t child = fork();
@@ -131,58 +116,13 @@ int main(int argc, char* argv[]) {
         } else { // failed to fork
           perror("Failed to fork");
         }
-      } else {
-        // print they need to set server
-        printf("You need to set a server to connect to. Use \"setServer\" to declare the target server.\n");
-      }
-
-    }else if (!strcmp(token[0], "setServer") || !strcmp(token[0], "set") && !strcmp(token[1], "Server")){
-      // set up the server
-      printf("Enter the host name: ");
-      fflush(stdout);
-      getline(&serverName, &size, stdin);
-      fflush(stdout);
-      printf("Enter the port number: ");
-      getline(&portNo, &size, stdin);
-      // change newline to end of line
-      if ((pos=strchr(serverName, '\n')) != NULL)
-        *pos = '\0';
-      if ((pos=strchr(portNo, '\n')) != NULL)
-        *pos = '\0';
-
-      //cast port to int
-      port = atoi(portNo);
-
-      //check for valid port
-      if(port < 65535 && port > 1024)
-        serverSet = 1;
-      else 
-      printf("Invalid port. Please try again with a new port number. \n");
-    }else {
-      // create a child to exec the command
-      pid_t child = fork();
-      if(child > 0) { // parent
-        wait(&status);
-      } else if (child == 0) { //child
-       
-        // setup file path 
-        char path[256];
-        strcat(path, username);
-        strcat(path, "@");
-        strcat(path, "hercules.cs.uregina.ca");
-        strcat(path, ":");
-        strcat(path, "~/temp-shell");
-  
-        // copy the server file over to the remote host
-        execl("/usr/bin/scp", "scp -q", "server.c", path, NULL);
-
-        perror("Failed to exec. Type help for more information on usage");
-        exit(0);
-      } else { // failed to fork
-        perror("Failed to fork");
-      }
+    } else {
+      printf("Invalid command. Please try again. Type \"help\" for more information.");
     }
 
+    free(username);
+    free(serverName);
+    free(portNo);
     free(cmd);
     free(token);
   } while (1);
@@ -245,4 +185,26 @@ void printImage() {
     printf("%s", read);
     return;
     fclose(file);
+}
+
+void startServer(int status, char* uname, char* server) {
+  pid_t child = fork();
+
+  char path[256];
+  strcat(path, uname);
+  strcat(path, "@");
+  strcat(path, server);
+  strcat(path, ":");
+  strcat(path, "~/temp");
+
+  if(child > 0) 
+    wait(&status);
+  else if (child == 0) { 
+    execl("/usr/bin/scp", "scp -q", "server.c", path, NULL);
+    perror("Failed to exec. Type help for more information.");
+    exit(0);
+  } 
+  else perror("failed to fork");
+
+  SERV_RUNNING = 1;
 }
