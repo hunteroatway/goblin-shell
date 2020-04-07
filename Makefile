@@ -1,10 +1,10 @@
 CC = cc 
 
 all : 
-	gcc shell.c -o build/shell 
-	gcc server.c -o build/server 
-	gcc client.c -o build/client 
-	gcc raid.c -o build/raid -pthread
+	gcc shell.c -o shell 
+	gcc server.c -o server 
+	gcc client.c -o client 
+	gcc raid.c -o raid -pthread
 
 check : all 
 	./shell

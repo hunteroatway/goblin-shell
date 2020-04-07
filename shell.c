@@ -117,12 +117,9 @@ int main(int argc, char* argv[]) {
           perror("Failed to fork");
         }
     } else {
-      printf("Invalid command. Please try again. Type \"help\" for more information.");
+      printf("Invalid command. Please try again. Type \"help\" for more information. \n");
     }
 
-    free(username);
-    free(serverName);
-    free(portNo);
     free(cmd);
     free(token);
   } while (1);
@@ -190,17 +187,23 @@ void printImage() {
 void startServer(int status, char* uname, char* server) {
   pid_t child = fork();
 
-  char path[256];
-  strcat(path, uname);
-  strcat(path, "@");
-  strcat(path, server);
-  strcat(path, ":");
-  strcat(path, "~/temp");
+  char copyPath[256] = {0};
+  strcat(copyPath, uname);
+  strcat(copyPath, "@");
+  strcat(copyPath, server);
+  strcat(copyPath, ":");
+  strcat(copyPath, "~/server.c");
+
+  char sshPath[256] = {0};
+  strcat(sshPath, uname);
+  strcat(sshPath, "@");
+  strcat(sshPath, server);
 
   if(child > 0) 
     wait(&status);
-  else if (child == 0) { 
-    execl("/usr/bin/scp", "scp -q", "server.c", path, NULL);
+  else if (child == 0) {
+    //execl("/usr/bin/scp", "scp -q", "server.c", copyPath, NULL);
+    execl("/usr/bin/ssh", "ssh", sshPath, "\'gcc\'", "\'server.c\'", "\'-o\'", "\'server\'", NULL);
     perror("Failed to exec. Type help for more information.");
     exit(0);
   } 
