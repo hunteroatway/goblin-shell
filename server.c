@@ -121,12 +121,6 @@ int main(int argc, char* argv[]) {
       } else if (!strcmp(token[0] , "run")) {
         // create the list of command line arguments
         char** args = malloc(sizeof(char*)*(num_char+1));
-        int j = 2;
-        while (token[j] != NULL) {
-          args[j-2] = token[j];
-          printf("%d: %s \n", j, args[j-2]);
-          j++;
-        }
 
         // fork the process to allow for the exec to run
         pid_t pid = fork();
@@ -141,7 +135,6 @@ int main(int argc, char* argv[]) {
         } else {
           wait(&status);
         }
-
       } else {
         perror("invalid command \n");
         exit(1);
