@@ -92,6 +92,7 @@ int main(int argc, char* argv[]) {
         perror("Error in calling exec!");
         exit(0);
       }
+      exit(0);
     } else { //parent
       close(pfd[1]);
       wait(&status);
@@ -106,20 +107,20 @@ int main(int argc, char* argv[]) {
       write(sock_fd, dir, strlen(dir));
       printf("%s", dir);
     }
-    
 
-    int file = open("test.file", O_RDONLY);
-    if(file == -1)
-      write(sock_fd, "No information, dude.\n", strlen("No information, dude.\n"));
-    else
-    {
-      while((num_char = read(file, ch, 512)) > 0)
-        if (write(sock_fd, ch, num_char) < num_char) {
-          perror("writing failed");
-          exit(1);
-        }
-      close(file);
+    //sleep(1);
+    if ((num_char=read(sock_fd, ch, 512)) > 0) {
+      if (write(1, ch, num_char) < num_char) {
+        perror("write failed");
+        exit(1);
+      }
     }
+
+    dup2(sock_fd, fileno(stdout));
+  if(execlp("ls", "ls", "-la",NULL) == -1){
+        perror("Error in calling exec!");
+        exit(0);
+  }
     close(sock_fd);
   }
 
