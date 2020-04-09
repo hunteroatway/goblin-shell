@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
         FILE *report = NULL;
         if((report = fopen("report.txt", "w")) == NULL){
             perror("Error opening file");
-            return -1;
+            return;
         }
         
         fprintf(report, "We managed to gather a total of: \n");
@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
         FILE * report; 
         if((report = fopen("report.txt", "r")) == NULL){
             perror("Error opening file");
-            return -1;
+            return;
         }
         fscanf(report, "%*[^\n]"); // ignore first line
         fscanf(report, "%d", &gathered); // get the number gathered
@@ -374,7 +374,7 @@ void * fetchFood(void *num) {
         }
     }
 
-    return 0;
+    return;
 }
 
 void printImage() {

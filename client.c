@@ -17,9 +17,6 @@ int main(int argc, char* argv[]) {
   socklen_t sock_len;
   int sock, sock_fd, port; 
 
-  printf("Client started...");
-
-
   int num_char = 512;
   char ch[512];
   char message[BUFSIZE];  // used to send message to server process
@@ -37,23 +34,22 @@ int main(int argc, char* argv[]) {
 
   // make sure number of arguments is correct
   if(argc < 5) {
-    printf("Too few arguments. Type help for more information");
+    printf("Too few arguments. Type help for more information \n");
+    exit(0);
   }
 
   strcpy(username, argv[1]);
   strcpy(hostname, argv[2]);
   strcpy(portnum, argv[3]);
   strcpy(task, argv[4]);
-
-  printf("command sent by shell: %s %s %s %s", username, hostname, portnum, task);
-
+ 
   // prepare the message to be sent to server
   if (!strcmp(task , "compile")) {
     int i = 5;
     strcpy(message, task); 
-    strcat(message, " "); // message = "compile "
+    strcat(message, " ");
     list[0] = strdup("scp");
-    list[1] = strdup("goblin.txt"); // list = "scp goblin.txt"
+    list[1] = strdup("goblin.txt");
     while(argv[i] != NULL){      
       if(argv[i][0] == '-') {
         strcat(message, argv[i]);
@@ -72,6 +68,7 @@ int main(int argc, char* argv[]) {
       }
       i++;
     }
+    strcat(message, "\n");
   } else if (!strcmp(task , "run")) {
     int i = 5;
     strcpy(message, task);
@@ -81,6 +78,7 @@ int main(int argc, char* argv[]) {
       strcat(message, " ");
       i++;
     }
+    strcat(message, "\n");
   } else {
     printf("You have not send a valid command to client. Type \"help\" in the shell for more information. \n");
     return 0;
@@ -149,22 +147,26 @@ int main(int argc, char* argv[]) {
       wait(&status);
       // send message to server
       write(sock, message, strlen(message));
+      //sleep(1);
+      write(sock, "\0", strlen("\0"));
     }
    } else if (!strcmp(task , "run")){
       // send message to server
       write(sock, message, strlen(message));
+      //sleep(1);
+      write(sock, "\0", strlen("\0"));
    } else {
      printf("Error\n");
      return 0;
    }
  
-/*   while((num_char=read(sock, ch, 512)) > 0) {
-    if (write(1, ch, num_char) < num_char) {
-      perror("write failed");
-      exit(1);
-    }
+  while((num_char=read(sock, ch, 512)) > 0) {
+      if (write(1, ch, num_char) < num_char) {
+        perror("write failed");
+        exit(1);
+      }
+    } 
     close(sock);
-  } */
 
 	return EXIT_SUCCESS;
 }
