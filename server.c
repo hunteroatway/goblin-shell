@@ -117,7 +117,33 @@ int main(int argc, char* argv[]) {
       char** token = parse_command(ch);
 
       if (!strcmp(token[0] , "compile")) {
-          
+        char* fileExt = strrchr(token[1], '.');
+        char compilerType[8];
+
+        if (!strcmp(fileExt, ".c")) {
+          strcpy(compilerType, "gcc");
+        } else if (!strcmp(fileExt, ".cpp")) {
+          strcpy(compilerType, "g++");
+        } else {
+          perror("invalid file type");
+          exit(1);
+        }
+
+        printf("%s \n", compilerType);
+
+        // fork the process to allow for the exec to run
+        pid_t pid = fork();
+        if (pid == -1) {
+          perror("fork failed");
+          exit(1); 
+        } else if (pid == 0) {
+          // run the file name that was passed via the command with the list of args
+
+          perror("Failed to exec. Type help for more information on usage");
+          exit(0);
+        } else {
+          wait(&status);
+        }
       } else if (!strcmp(token[0] , "run")) {
         // create the list of command line arguments
         char** args = malloc(sizeof(char*)*(num_char+1));

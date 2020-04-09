@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
       exit(0);
     } else if (child == 0) {
       //execl("/usr/bin/scp", "scp", scpFiles, scpPath, NULL);
-      execvp("scp", list);
+      //execvp("scp", list);
       //execlp("scp", scp, NULL);
       perror("scp failure");
       exit(1);
