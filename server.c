@@ -119,17 +119,33 @@ int main(int argc, char* argv[]) {
       if (!strcmp(token[0] , "compile")) {
           
       } else if (!strcmp(token[0] , "run")) {
-      
+        // create the list of command line arguments
+        char** args = malloc(sizeof(char*)*(num_char+1));
+        int j = 2;
+        while (token[j] != NULL) {
+          args[j-2] = token[j];
+          printf("%d: %s \n", j, args[j-2]);
+          j++;
+        }
+
+        // fork the process to allow for the exec to run
+        pid_t pid = fork();
+        if (pid == -1) {
+          perror("fork failed");
+          exit(1); 
+        } else if (pid == 0) {
+          // run the file name that was passed via the command with the list of args
+          execv(token[1], args);
+          perror("Failed to exec. Type help for more information on usage");
+          exit(0);
+        } else {
+          wait(&status);
+        }
+
       } else {
         perror("invalid command \n");
         exit(1);
       }
-
-      if(execlp("ls", "ls", NULL) == -1) {
-            perror("Error in calling exec!");
-            exit(0);
-      }
-
 
     close(sock_fd);
   }
