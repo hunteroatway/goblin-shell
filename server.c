@@ -12,7 +12,10 @@
 
 #define PORT 0
 #define BUFSIZE 512
+#define TOKEN_BUFSIZE 64
 
+char** parse_command(char* _cmd);
+ 
 int main(int argc, char* argv[]) {
   struct sockaddr_in sock_addr;
   struct hostent *host = NULL;
@@ -105,24 +108,66 @@ int main(int argc, char* argv[]) {
 
       // send current directory to client
       write(sock_fd, dir, strlen(dir));
-      printf("%s", dir);
     }
 
-    //sleep(1);
-    if ((num_char=read(sock_fd, ch, 512)) > 0) {
-      if (write(1, ch, num_char) < num_char) {
-        perror("write failed");
+      // redirects stdout from server to client
+      dup2(sock_fd, fileno(stdout));
+
+      num_char = read(sock_fd, ch, 512);
+      char** token = parse_command(ch);
+
+      if (!strcmp(token[0] , "compile")) {
+          
+      } else if (!strcmp(token[0] , "run")) {
+      
+      } else {
+        perror("invalid command \n");
         exit(1);
       }
-    }
 
-    dup2(sock_fd, fileno(stdout));
-  if(execlp("ls", "ls", "-la",NULL) == -1){
-        perror("Error in calling exec!");
-        exit(0);
-  }
+      if(execlp("ls", "ls", NULL) == -1) {
+            perror("Error in calling exec!");
+            exit(0);
+      }
+
+
     close(sock_fd);
   }
 
   return EXIT_SUCCESS;
+}
+
+char** parse_command(char* _cmd) {
+  int size = TOKEN_BUFSIZE;
+  int pos = 0;  
+  char* delim = " \n\t";
+  char** buffer = malloc(sizeof(char*)*size);
+  char* token;
+
+  if (!buffer) {
+    printf("Bad allocation error!");
+    exit(EXIT_FAILURE);  
+  }
+
+  token = strtok(_cmd, delim);
+
+  while (token != NULL) {
+    buffer[pos] = token;
+    pos++;
+
+    if (pos >= size) {
+      size += TOKEN_BUFSIZE;
+      buffer = realloc(buffer, sizeof(char*)*size); 
+
+      if (!buffer) {
+        printf("Bad allocation error!");
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    token = strtok(NULL, delim);  
+  }
+
+  buffer[pos] = NULL;
+  return buffer;
 }

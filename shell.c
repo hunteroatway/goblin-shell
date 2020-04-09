@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
         printf("You need to set a server to connect to. Use \"setServer\" to declare the target server.\n");
       }
 
-    }else if (!strcmp(first, "setServer") || !strcmp(first, "set") && !strcmp(token[1], "Server")){
+    }else if (!strcmp(first, "setServer") || (!strcmp(first, "set") && !strcmp(token[1], "Server"))) {
       // set up the server
       printf("Enter the host name: ");
       fflush(stdout);
@@ -221,14 +221,11 @@ void printImage() {
   FILE *file = NULL;
   if((file = fopen("goblin.txt", "r")) == NULL){
     perror("Error opening file");
-    return;
   }
 
   char read[MAX];
   while(fgets(read, sizeof(read), file) != NULL)
     printf("%s", read);
-
-    return;
 
     fclose(file);
 }

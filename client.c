@@ -28,8 +28,8 @@ int main(int argc, char* argv[]) {
 
   // is given in form ./client $username $serverName $Port compile $[compliation] 
   char portnum[20];
-  char hostname[20];
-  char username[50];
+  char hostname[50];
+  char username[20];
   char task[20];
 
   // make sure number of arguments is correct
@@ -168,5 +168,5 @@ int main(int argc, char* argv[]) {
     } 
     close(sock);
 
-	return EXIT_SUCCESS;
+	return 0;
 }
