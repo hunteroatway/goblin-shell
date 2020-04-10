@@ -7,6 +7,7 @@
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <signal.h>
 
 #define BUFSIZE 512
 #define TOKEN_BUFSIZE 64 
@@ -135,12 +136,9 @@ int main(int argc, char* argv[]) {
       perror("fork");
       exit(0);
     } else if (child == 0) {
-      //execl("/usr/bin/scp", "scp", scpFiles, scpPath, NULL);
       execvp("scp", list);
-      //execlp("scp", scp, NULL);
       perror("scp failure");
       exit(1);
-
     } else {
       // wait for files to copy
       wait(&status);
@@ -148,6 +146,8 @@ int main(int argc, char* argv[]) {
       write(sock, message, strlen(message));
       //sleep(1);
       write(sock, "\0", strlen("\0"));
+
+      kill(getpid(), SIGINT);
     }
    } else if (!strcmp(task , "run")){
       // send message to server
