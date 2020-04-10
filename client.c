@@ -43,13 +43,14 @@ int main(int argc, char* argv[]) {
   strcpy(hostname, argv[2]);
   strcpy(portnum, argv[3]);
   strcpy(task, argv[4]);
- 
+
   // prepare the message to be sent to server
   if (!strcmp(task , "compile")) {
     int i = 5;
     strcpy(message, task); 
     strcat(message, " ");
     list[0] = strdup("scp");
+    list[1] = strdup("goblin.txt");
     while(argv[i] != NULL){      
       if(argv[i][0] == '-') {
         strcat(message, argv[i]);
@@ -83,6 +84,7 @@ int main(int argc, char* argv[]) {
     printf("You have not send a valid command to client. Type \"help\" in the shell for more information. \n");
     return 0;
   }
+
 	// zero out sock_addr struct
 	bzero((char *)&sock_addr, sizeof(sock_addr));
 	
@@ -145,8 +147,6 @@ int main(int argc, char* argv[]) {
       write(sock, message, strlen(message));
       //sleep(1);
       write(sock, "\0", strlen("\0"));
-
-      kill(getpid(), SIGINT);
     }
    } else if (!strcmp(task , "run")){
       // send message to server
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
      return 0;
    }
  
-  while((num_char=read(sock, ch, 512)) > 0) {
+  while(((num_char=read(sock, ch, 512)) > 0) && ch[0] != 4) {
       if (write(1, ch, num_char) < num_char) {
         perror("write failed");
         exit(1);

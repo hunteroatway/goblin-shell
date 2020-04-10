@@ -8,6 +8,7 @@
 
 #define TOKEN_BUFSIZE 64 
 #define MAX 128
+#define OFFSET 4
 
 char* get_command();
 char** parse_command(char*);
@@ -52,19 +53,20 @@ int main(int argc, char* argv[]) {
     } else if (!strcmp(token[0], "help") || !strcmp(token[0], "h")) {
         printf("usage: goblin-shell [COMMANDS] \n\n");
         printf("commands: \n");
-        printf("\tcopy\t  copy a file to the remote host \n");
         printf("\tcompile\t  compile a file on the remote host \n");
         printf("\trun\t  run a program on the remote host \n");
         printf("\thelp\t  display usage information \n");
         printf("\texit\t  exit the shell \n\n");
     } else if (!strcmp(token[0], "compile")) {
       // invoke client with form ./client username servername port compile
-      char** command = malloc(sizeof(char*)*5);
+
+      // create argument list to send to client
+      char** command = malloc(sizeof(char*)*OFFSET*TOKEN_BUFSIZE);
       command[0] = strdup("client");
       command[1] = strdup(username);
       command[2] = strdup(serverName);
       command[3] = strdup(portNo);
-      command[4] = strdup("compile");
+      memcpy(command+OFFSET, token, sizeof(char*)*TOKEN_BUFSIZE);
 
       // create a child to exec the command
       pid_t child = fork();
@@ -81,12 +83,13 @@ int main(int argc, char* argv[]) {
       }
     } else if (!strcmp(token[0], "run")){
         // invoke client with form ./client username servername port run
-        char** command = malloc(sizeof(char*)*5);
+        // create argument list to send to client
+        char** command = malloc(sizeof(char*)*OFFSET*TOKEN_BUFSIZE);
         command[0] = strdup("client");
         command[1] = strdup(username);
         command[2] = strdup(serverName);
         command[3] = strdup(portNo);
-        command[4] = strdup("run");
+        memcpy(command+OFFSET, token, sizeof(char*)*TOKEN_BUFSIZE);
         
         // create a child to exec the command
         pid_t child = fork();
@@ -100,7 +103,7 @@ int main(int argc, char* argv[]) {
         } else { // failed to fork
           perror("Failed to fork");
         }
-    } else printf("Invalid command. Please try again. Type \"help\" for more information.");
+    } else printf("Invalid command. Please try again. Type \"help\" for more information.\n");
     
 
     free(cmd);

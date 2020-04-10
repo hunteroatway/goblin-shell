@@ -89,6 +89,7 @@ int main(int argc, char* argv[]) {
       close(pfd[0]);
       // redirect std out to pipe
       dup2(pfd[1], fileno(stdout));
+      dup2(pfd[1], fileno(stderr));
 
       // exec pwd
       if(execlp("pwd", "pwd", NULL) == -1){
@@ -112,7 +113,7 @@ int main(int argc, char* argv[]) {
 
       // redirects stdout from server to client
       dup2(sock_fd, fileno(stdout));
-
+      memset(&ch,'\0', sizeof(ch)); 
       num_char = read(sock_fd, ch, 512);
       char** token = parse_command(ch);
 
@@ -121,7 +122,7 @@ int main(int argc, char* argv[]) {
         char* fileExt = strrchr(token[1], '.');
         char compilerType[8];
 
-        // get the output file name from the supplied code fiel
+        // get the output file name from the input
         int j = 0;
         while (token[1][j] != '.') {
           outputFile[j] = token[1][j];
@@ -144,8 +145,22 @@ int main(int argc, char* argv[]) {
           perror("fork failed");
           exit(1); 
         } else if (pid == 0) {
+          char** list = malloc(sizeof(char*)*TOKEN_BUFSIZE);
+          list[0] = strdup(compilerType);
+          int x = 1;
+          int y = 1;
+          while(token[x] != NULL){
+            list[y] = strdup(token[x]);
+            x++;
+            y++;
+          }
+          list[y] = strdup("-o");
+          list[y+1] = strdup(outputFile);
+          list[y+2] = NULL;
+
           // run the file name that was passed via the command with the list of args
-          execlp(compilerType, compilerType, token[1], "-o", outputFile, NULL);
+          //execlp(compilerType, compilerType, token[1], "-o", outputFile, NULL);
+          execvp(compilerType, list);
           perror("Failed to exec. Type help for more information on usage");
           exit(0);
         } else {
@@ -155,6 +170,17 @@ int main(int argc, char* argv[]) {
         // create the list of command line arguments
         char** args = malloc(sizeof(char*)*(num_char+1));
 
+        // prepare the arguments to send to the program to run
+        int x = 2;
+        int y = 1;
+        args[0] = strdup(token[1]);
+        while(token[x] != NULL) {
+          args[y] = strdup(token[x]);
+          x++;
+          y++;
+        }
+        args[y] = NULL;
+
         // fork the process to allow for the exec to run
         pid_t pid = fork();
         if (pid == -1) {
@@ -162,17 +188,18 @@ int main(int argc, char* argv[]) {
           exit(1); 
         } else if (pid == 0) {
           // run the file name that was passed via the command with the list of args
-          execv(token[1], args);
+          execvp(token[1], args);
           perror("Failed to exec. Type help for more information on usage");
           exit(0);
         } else {
           wait(&status);
+          free(args);
         }
       } else {
         perror("invalid command \n");
         exit(1);
       }
-
+    write(sock_fd, "\4", sizeof("\4"));
     close(sock_fd);
   }
 
