@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
   char* pos;
 
   char** list = malloc(sizeof(char*) * TOKEN_BUFSIZE);
-  int x = 2;
+  int x = 1;
 
   // is given in form ./client $username $serverName $Port compile $[compliation] 
   char portnum[20];
@@ -49,7 +49,6 @@ int main(int argc, char* argv[]) {
     strcpy(message, task); 
     strcat(message, " ");
     list[0] = strdup("scp");
-    list[1] = strdup("goblin.txt");
     while(argv[i] != NULL){      
       if(argv[i][0] == '-') {
         strcat(message, argv[i]);
@@ -137,7 +136,7 @@ int main(int argc, char* argv[]) {
       exit(0);
     } else if (child == 0) {
       //execl("/usr/bin/scp", "scp", scpFiles, scpPath, NULL);
-      //execvp("scp", list);
+      execvp("scp", list);
       //execlp("scp", scp, NULL);
       perror("scp failure");
       exit(1);
