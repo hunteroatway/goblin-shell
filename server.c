@@ -117,9 +117,18 @@ int main(int argc, char* argv[]) {
       char** token = parse_command(ch);
 
       if (!strcmp(token[0] , "compile")) {
+        char outputFile[32];
         char* fileExt = strrchr(token[1], '.');
         char compilerType[8];
 
+        // get the output file name from the supplied code fiel
+        int j = 0;
+        while (token[1][j] != '.') {
+          outputFile[j] = token[1][j];
+          j++;
+        }
+
+        // determine the compiler based on the file extension
         if (!strcmp(fileExt, ".c")) {
           strcpy(compilerType, "gcc");
         } else if (!strcmp(fileExt, ".cpp")) {
@@ -129,8 +138,6 @@ int main(int argc, char* argv[]) {
           exit(1);
         }
 
-        printf("%s \n", compilerType);
-
         // fork the process to allow for the exec to run
         pid_t pid = fork();
         if (pid == -1) {
@@ -138,7 +145,7 @@ int main(int argc, char* argv[]) {
           exit(1); 
         } else if (pid == 0) {
           // run the file name that was passed via the command with the list of args
-
+          execlp(compilerType, compilerType, token[1], "-o", outputFile, NULL);
           perror("Failed to exec. Type help for more information on usage");
           exit(0);
         } else {
