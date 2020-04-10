@@ -2,30 +2,28 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
-#include <netinet/in.h>
 #include <netdb.h>
 #include <signal.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
-#define BUFSIZE 512
-#define TOKEN_BUFSIZE 64 
+// global constants
+const unsigned int BUFSIZE = 512;
+const unsigned int TOKEN_BUFSIZE = 64; 
 
 int main(int argc, char* argv[]) {
 	struct sockaddr_in sock_addr;
   struct hostent *host;
   socklen_t sock_len;
-  int sock, sock_fd, port; 
-
+  int sock, sock_fd, port;
+  int x = 2;
   int num_char = 512;
-  char ch[512];
-  char message[BUFSIZE];  // used to send message to server process
+  char ch[512], message[BUFSIZE];
   char* word;
   char* pos;
-
   char** list = malloc(sizeof(char*) * TOKEN_BUFSIZE);
-  int x = 2;
 
   // is given in form ./client $username $serverName $Port compile $[compliation] 
   char portnum[20];
@@ -39,6 +37,7 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
 
+  // copy args to char buffers
   strcpy(username, argv[1]);
   strcpy(hostname, argv[2]);
   strcpy(portnum, argv[3]);
@@ -109,6 +108,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
   
+  // read the current directory
   char dir[BUFSIZE];
   int dir_size = read(sock, dir, BUFSIZE);
   fflush(stdout);
@@ -116,7 +116,6 @@ int main(int argc, char* argv[]) {
     *pos = '\0';
 
    if (!strcmp(task , "compile")) {
-
      // path for the scp. combine username, server and path
     char scpPath[512];
     char scp[512];
@@ -166,5 +165,5 @@ int main(int argc, char* argv[]) {
     } 
     close(sock);
 
-	return 0;
+	return EXIT_SUCCESS;
 }
