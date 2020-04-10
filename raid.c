@@ -42,8 +42,6 @@ struct arg {
 };
 
 void *fetchFood();
-void printImage();
-void printImageFile(FILE * report);
 
 // signals used to have the queen and butler communicate across 2 processes to invoke waiting
 static void intHandler(int signalNo, siginfo_t *info, void *context) {
@@ -201,7 +199,6 @@ int main(int argc, char* argv[]) {
         for(i = 0; i < troops; i++) {
             fprintf(report, "Goblin %d manged to find %d food. \n", list[i].g_number, list[i].sum);
         }
-        printImageFile(report);
 
         // free the list
         free (list);
@@ -375,38 +372,4 @@ void * fetchFood(void *num) {
     }
 
     return;
-}
-
-void printImage() {
-
-  FILE *file = NULL;
-  if((file = fopen("goblin.txt", "r")) == NULL){
-    perror("Error opening file");
-    return;
-  }
-
-  char read[MAX];
-  while(fgets(read, sizeof(read), file) != NULL)
-    printf("%s", read);
-
-    return;
-
-    fclose(file);
-}
-
-void printImageFile(FILE * report) {
-
-  FILE *file = NULL;
-  if((file = fopen("goblin.txt", "r")) == NULL){
-    perror("Error opening file");
-    return;
-  }
-
-  char read[MAX];
-  while(fgets(read, sizeof(read), file) != NULL)
-    fprintf(report, "%s", read);
-
-    return;
-
-    fclose(file);
 }
