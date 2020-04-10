@@ -44,8 +44,8 @@ int main(int argc, char* argv[]) {
   do {
     // prompt for user input and tokenize the input
     printf("goblin-shell > ");
-    cmd = get_command();
-    token = parse_command(cmd);
+    cmd = getCommand();
+    token = parseCommand(cmd);
 
     // check to see if user wants help or exit
     if (!strcmp(token[0], "exit") || !strcmp(token[0], "lo") || !strcmp(token[0], "quit") || !strcmp(token[0], "shutdown")) {
@@ -153,6 +153,7 @@ char** parseCommand(char* _cmd) {
   return buffer;
 }
 
+// prints the image of the goblin to the console
 void printImage() {
   FILE *file = NULL;
   if((file = fopen("goblin.txt", "r")) == NULL){
