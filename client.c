@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
   struct hostent *host;
   socklen_t sock_len;
   int sock, sock_fd, port;
-  int x = 2;
+  int x = 1;
   int num_char = 512;
   char ch[512], message[BUFSIZE];
   char* word;
@@ -49,7 +49,6 @@ int main(int argc, char* argv[]) {
     strcpy(message, task); 
     strcat(message, " ");
     list[0] = strdup("scp");
-    list[1] = strdup("goblin.txt");
     while(argv[i] != NULL){      
       if(argv[i][0] == '-') {
         strcat(message, argv[i]);
@@ -146,6 +145,9 @@ int main(int argc, char* argv[]) {
       write(sock, message, strlen(message));
       //sleep(1);
       write(sock, "\0", strlen("\0"));
+
+      // kill client to return to shell after compilation
+      kill(getpid(), SIGINT);
     }
    } else if (!strcmp(task , "run")){
       // send message to server

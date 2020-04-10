@@ -10,6 +10,7 @@
 char* getCommand();
 char** parseCommand(char*);
 void printImage();
+int startServer(char* username, char* server, int, int);
 
 // global constants
 const unsigned int TOKEN_BUFSIZE = 64; 
@@ -42,6 +43,12 @@ int main(int argc, char* argv[]) {
   }
   
   do {
+    int server = 0;
+    if ((server = startServer(username, servername, port, status)) < 0) {
+      perror("failed to start server");
+      exit(0);
+    }
+
     // prompt for user input and tokenize the input
     printf("goblin-shell > ");
     cmd = getCommand();
@@ -164,4 +171,64 @@ void printImage() {
   while(fgets(read, sizeof(read), file) != NULL)
     printf("%s", read);
   fclose(file);
+}
+
+int startServer(char* username, char* server, int port, int status) {
+  char copyPath[256] = {0};
+  strcat(copyPath, username);
+  strcat(copyPath, "@");
+  strcat(copyPath, server);
+  strcat(copyPath, ":");
+  strcat(copyPath, "~/server.c");
+
+  char sshPath[256] = {0};
+  strcat(sshPath, username);
+  strcat(sshPath, "@");
+  strcat(sshPath, server); 
+
+  pid_t copypid = fork();
+  if (copypid > 0) {
+    wait(&status);
+  } else if (copypid == 0) {
+    printf("Copying server.c to remote host... \n");
+    execl("/usr/bin/scp", "scp -q", "server.c", copyPath, NULL);
+    perror("failed to exec");
+    return -1;
+    exit(0);
+  } else {
+    perror("fork failed");
+    return -1;
+    exit(0);
+  }
+
+  pid_t compilepid = fork();
+  if (compilepid > 0) {
+    wait(&status);
+  } else if (compilepid == 0) {
+    printf("Compiling server.c on remote host... \n");
+    execl("/usr/bin/ssh", "ssh", sshPath, "\'gcc\'", "\'server.c\'", "\'-o\'", "\'server\'", NULL);
+    perror("failed to exec");
+    return -1;
+    exit(0);
+  } else {
+    perror("fork failed");
+    return -1;
+    exit(0);
+  }
+
+  pid_t execpid = fork();
+  if (execpid > 0) {
+    wait(&status);
+  } else if (execpid == 0) {
+    execl("/usr/bin/ssh", "ssh", sshPath, "\'server\'", NULL);
+    perror("failed to exec");
+    return -1;
+    exit(0);
+  } else {
+    perror("fork failed");
+    return -1;
+    exit(0);
+  }
+
+  return 1;
 }
