@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
   char* pos;
 
   char** list = malloc(sizeof(char*) * TOKEN_BUFSIZE);
-  int x = 1;
+  int x = 2;
 
   // is given in form ./client $username $serverName $Port compile $[compliation] 
   char portnum[20];
@@ -127,7 +127,6 @@ int main(int argc, char* argv[]) {
     // push the path into the list and null terminate list
     list[x] = strdup(scpPath);
     list[x+1] = NULL;
-
 
     // move a file over
     pid_t child = fork();
