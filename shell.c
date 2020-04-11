@@ -6,26 +6,30 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define TOKEN_BUFSIZE 64 
-#define MAX 128
-#define OFFSET 4
-
-char* get_command();
-char** parse_command(char*);
+// function declarations
+char* getCommand();
+char** parseCommand(char*);
 void printImage();
+int startServer(char* username, char* server, int, int);
+
+// global constants
+const unsigned int TOKEN_BUFSIZE = 64; 
+const unsigned int MAX = 128;
+const unsigned int OFFSET = 4;
 
 int main(int argc, char* argv[]) {
+  // variable definitions
   char* cmd, pos;
   char* username = NULL;
-  char* serverName = NULL;
-  char* portNo = NULL;
+  char* servername = NULL;
+  char* portno = NULL;
   char** token;
   int status, port; 
   size_t size = 0;
 
    // parse arguments to gather required information 
   if (argc != 7) {
-    printf("usage: shell [-u USERNAME] [-s SERVER] [-p PORT] \n\n");
+    printf("usage: goblin-shell [-u USERNAME] [-s SERVER] [-p PORT] \n\n");
     printf("required arguments: \n");
     printf("\t-u\tusername information \n");
     printf("\t-s\tserver information \n");
@@ -33,39 +37,45 @@ int main(int argc, char* argv[]) {
     exit(1);
   } else {
     username = argv[2];
-    serverName = argv[4];
-    portNo = argv[6];
-    port = atoi(portNo);
+    servername = argv[4];
+    portno = argv[6];
+    port = atoi(portno);
   }
   
   do {
+    int server = 0;
+    if ((server = startServer(username, servername, port, status)) < 0) {
+      perror("failed to start server");
+      exit(0);
+    }
+
+    // prompt for user input and tokenize the input
     printf("goblin-shell > ");
-    cmd = get_command();
-    token = parse_command(cmd);
+    cmd = getCommand();
+    token = parseCommand(cmd);
 
     // check to see if user wants help or exit
     if (!strcmp(token[0], "exit") || !strcmp(token[0], "lo") || !strcmp(token[0], "quit") || !strcmp(token[0], "shutdown")) {
-      printf("goblin-shell terminating...\n");
+      printf("Goodbye! \n");
       printImage();
       free(cmd);
       free(token);
       exit(0);
     } else if (!strcmp(token[0], "help") || !strcmp(token[0], "h")) {
-        printf("usage: goblin-shell [COMMANDS] \n\n");
-        printf("commands: \n");
-        printf("\tcompile\t  compile a file on the remote host \n");
-        printf("\trun\t  run a program on the remote host \n");
-        printf("\thelp\t  display usage information \n");
-        printf("\texit\t  exit the shell \n\n");
+      // display some helpful information
+      printf("usage: goblin-shell [COMMANDS] \n\n");
+      printf("commands: \n");
+      printf("\tcompile [filename(s)]\t  compile a file on the remote host \n");
+      printf("\trun [filename(s)] [argument(s)]\t  run a program on the remote host \n");
+      printf("\thelp\t  display usage information \n");
+      printf("\texit\t  exit the shell \n\n");
     } else if (!strcmp(token[0], "compile")) {
-      // invoke client with form ./client username servername port compile
-
       // create argument list to send to client
       char** command = malloc(sizeof(char*)*OFFSET*TOKEN_BUFSIZE);
       command[0] = strdup("client");
       command[1] = strdup(username);
-      command[2] = strdup(serverName);
-      command[3] = strdup(portNo);
+      command[2] = strdup(servername);
+      command[3] = strdup(portno);
       memcpy(command+OFFSET, token, sizeof(char*)*TOKEN_BUFSIZE);
 
       // create a child to exec the command
@@ -74,21 +84,17 @@ int main(int argc, char* argv[]) {
         wait(&status);
         free(command);
       } else if (child == 0) { //child
-        printf("testing here...");
         execv("./client", command);
         perror("Failed to exec. Type help for more information on usage");
         exit(0);
-      } else { // failed to fork
-        perror("Failed to fork");
-      }
+      } else perror("failed to fork");
     } else if (!strcmp(token[0], "run")){
-        // invoke client with form ./client username servername port run
         // create argument list to send to client
         char** command = malloc(sizeof(char*)*OFFSET*TOKEN_BUFSIZE);
         command[0] = strdup("client");
         command[1] = strdup(username);
-        command[2] = strdup(serverName);
-        command[3] = strdup(portNo);
+        command[2] = strdup(servername);
+        command[3] = strdup(portno);
         memcpy(command+OFFSET, token, sizeof(char*)*TOKEN_BUFSIZE);
         
         // create a child to exec the command
@@ -100,12 +106,9 @@ int main(int argc, char* argv[]) {
           execv("./client", command);
           perror("Failed to exec. Type help for more information on usage");
           exit(0);
-        } else { // failed to fork
-          perror("Failed to fork");
-        }
+        } else perror("failed to fork");
     } else printf("Invalid command. Please try again. Type \"help\" for more information.\n");
     
-
     free(cmd);
     free(token);
   } while (1);
@@ -113,14 +116,16 @@ int main(int argc, char* argv[]) {
   return EXIT_SUCCESS;
 }
 
-char* get_command() {
+// retrieves the line of the user input
+char* getCommand() {
   char* cmd = NULL;
   size_t size = 0;
   getline(&cmd, &size, stdin);
   return cmd;
 }
 
-char** parse_command(char* _cmd) {
+// tokenizes the input from the entire command line
+char** parseCommand(char* _cmd) {
   int size = TOKEN_BUFSIZE;
   int pos = 0;  
   char* delim = " \n\t";
@@ -155,8 +160,8 @@ char** parse_command(char* _cmd) {
   return buffer;
 }
 
+// prints the image of the goblin to the console
 void printImage() {
-
   FILE *file = NULL;
   if((file = fopen("goblin.txt", "r")) == NULL){
     perror("Error opening file");
@@ -165,6 +170,65 @@ void printImage() {
   char read[MAX];
   while(fgets(read, sizeof(read), file) != NULL)
     printf("%s", read);
+  fclose(file);
+}
 
-    fclose(file);
+int startServer(char* username, char* server, int port, int status) {
+  char copyPath[256] = {0};
+  strcat(copyPath, username);
+  strcat(copyPath, "@");
+  strcat(copyPath, server);
+  strcat(copyPath, ":");
+  strcat(copyPath, "~/server.c");
+
+  char sshPath[256] = {0};
+  strcat(sshPath, username);
+  strcat(sshPath, "@");
+  strcat(sshPath, server); 
+
+  pid_t copypid = fork();
+  if (copypid > 0) {
+    wait(&status);
+  } else if (copypid == 0) {
+    printf("Copying server.c to remote host... \n");
+    execl("/usr/bin/scp", "scp -q", "server.c", copyPath, NULL);
+    perror("failed to exec");
+    return -1;
+    exit(0);
+  } else {
+    perror("fork failed");
+    return -1;
+    exit(0);
+  }
+
+  pid_t compilepid = fork();
+  if (compilepid > 0) {
+    wait(&status);
+  } else if (compilepid == 0) {
+    printf("Compiling server.c on remote host... \n");
+    execl("/usr/bin/ssh", "ssh", sshPath, "\'gcc\'", "\'server.c\'", "\'-o\'", "\'server\'", NULL);
+    perror("failed to exec");
+    return -1;
+    exit(0);
+  } else {
+    perror("fork failed");
+    return -1;
+    exit(0);
+  }
+
+  pid_t execpid = fork();
+  if (execpid > 0) {
+    wait(&status);
+  } else if (execpid == 0) {
+    execl("/usr/bin/ssh", "ssh", sshPath, "\'server\'", NULL);
+    perror("failed to exec");
+    return -1;
+    exit(0);
+  } else {
+    perror("fork failed");
+    return -1;
+    exit(0);
+  }
+
+  return 1;
 }
