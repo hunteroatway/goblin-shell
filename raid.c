@@ -77,12 +77,14 @@ int main(int argc, char* argv[]) {
         // check if it is not in range 
         if(food > upperFood || food < lowerFood){
             printf("Value for food is out of range. Pick a number between 150 and 250. \n");
+            fflush(stdout);
             return 0;
         }
 
         // check if it is not in range 
          if(troops > upperTroop || troops < lowerTroop){
             printf("Value for troops is out of range. Pick a number between 5 and 10. \n");
+            fflush(stdout);
             return 0;
         }
 
@@ -127,13 +129,17 @@ int main(int argc, char* argv[]) {
 
         // have butler speak
         printf("Butler: Why of course your majesty. I will gather %d of our best troops to hunt for %d bits of food \n", troops, food);
+        fflush(stdout);
         sleep(1);
         printf("Butler: I am on my way now. I will not let you down! \n");
+        fflush(stdout);
 
         sleep(5);
         printf("Butler: Hello young goblins. I need %d of you to go on an adventure.\n", troops);
+        fflush(stdout);
         sleep(1);
         printf("Butler: Get ready! You are heading out now!\n");
+        fflush(stdout);
 
         // set up threads 
         void *p_status;
@@ -161,23 +167,31 @@ int main(int argc, char* argv[]) {
 
         // have goblins tell butler their total once all have returned.
         printf("Butler: Goblins! Since you have returned. Please tell me how much food you each found! \n");
+        fflush(stdout);
         sleep(1);
         for(i = 0; i < troops; i++) { // potentially add conditions based off total food found to give different reactions
             printf("Goblin %d: I manged to find a total of %d bits of food!\n", list[i].g_number, list[i].sum);
+            fflush(stdout);
             sleep(1);
         }
         //free the array
         free(thread_ids);
 
         // need to add butler reacting and then passing it to the queen. potentially though a txt file.
-        if(gathered < food) // panic
+        if(gathered < food) {// panic
             printf("Butler: Oh no! I didn't gather enough food! The Queen is going to be so angry with me!\n");
-        else if(gathered > food) // panic
+            fflush(stdout);
+        } else if(gathered > food) {// panic
             printf("Butler: Oh no! I gathered too much food! The Queen is going to be so angry with me!\n");
-        else if(gathered == food) // happy
+            fflush(stdout);
+        } else if(gathered == food) {// happy
             printf("Butler: Yay! I gathered enough food. The Queen is going to be happy with me! \n");
+            fflush(stdout);
+        }
+        
         sleep(1);
         printf("Butler: It is time to write my report about these gatherings. \n");
+        fflush(stdout);
         // open a txt file to write the report
         FILE *report = NULL;
         if((report = fopen("report.txt", "w")) == NULL){
@@ -208,30 +222,39 @@ int main(int argc, char* argv[]) {
         sleep(3);
         // return the list to the queen
         printf("Butler: I now have to deliver this report to the queen \n");
+        fflush(stdout);
         sleep(5);
         butler = 0;
         kill(queenPid, SIGUSR2);
         while(!butler);
 
         // answer queen
-        if(gathered < food) // panic
+        if(gathered < food) {// panic
             printf("Butler: We were unable to get enough food.\n");
-        else if(gathered > food) // panic
+            fflush(stdout);
+        } else if(gathered > food) { // panic
             printf("Butler: We manged to get extra food. Hopefully that is okay.\n");
-        else if(gathered == food) // happy
+            fflush(stdout);
+        } else if(gathered == food) {// happy
             printf("Butler: We succesfully manged to get enough food! \n");
+            fflush(stdout);
+        }
         sleep(1);
         printf("Butler: Here is a report. \n");
+        fflush(stdout);
         sleep(1);
         butler = 0;
         kill(queenPid, SIGUSR2);
         while(!butler);
 
         // respond
-        if(gathered == food) // happy
+        if(gathered == food) {// happy
             printf("Butler: I am glad to be of service!\n");
-        else if(gathered > food || gathered < food) // panic
+            fflush(stdout);
+        } else if(gathered > food || gathered < food) { // panic
             printf("Butler: I am sorry to have let you down your majesty. I will make sure not to make this mistake on the next raid.\n");
+            fflush(stdout);
+        }
         
         sleep(1);
         exit(0);
@@ -255,10 +278,13 @@ int main(int argc, char* argv[]) {
         // allow queen to speak
         queen = 1;
         printf("Queen: Hello butler. I need you to gather troops in order to get some food for the village for me. \n");
+        fflush(stdout);
         sleep(1);
         printf("Queen: I am able to allocate %d troops to get a total of %d food. \n", troops, food);
+        fflush(stdout);
         sleep(1);
         printf("Queen: I want exactly this amount of food. No more. No less. Got it? \n");
+        fflush(stdout);
         sleep(1);
         queen = 0;
         kill (pid, SIGUSR1);
@@ -268,6 +294,7 @@ int main(int argc, char* argv[]) {
 
         // talk to butler
         printf("Queen: Hello butler, I see you have returned. How did you fair on this mission? \n");
+        fflush(stdout);
         sleep(1);
         queen = 0;
         kill (pid, SIGUSR1);
@@ -275,6 +302,7 @@ int main(int argc, char* argv[]) {
         while(!queen);
 
         printf("Queen: Thank you for the report. I will read that right away.\n");
+        fflush(stdout);
 
         FILE * report; 
         if((report = fopen("report.txt", "r")) == NULL){
@@ -288,44 +316,56 @@ int main(int argc, char* argv[]) {
 
         // react to food
         printf("Queen: I see you have gathered a total of %d food. I requested %d food.\n", gathered, food);
+        fflush(stdout);
         sleep(1);
         if(gathered == food) {
             printf("Queen: Excellent! Thank you for gathering the correct amount of food! I will require your services again soon! \n");
+            fflush(stdout);
             sleep(1);
             kill (pid, SIGUSR1);
         } else if(gathered < food && (food - gathered) < food * 0.1) { // if within 10 %
             printf("Queen: You failed to gather enough food. However, there is enough food to make do. You are dismissed... this time. \n");
+            fflush(stdout);
             sleep(1);
             kill (pid, SIGUSR1);
         } else if(gathered < food && !((food - gathered) < food * 0.1)) { // if not within 10 %
             printf("Queen: You failed to gather enough food. Guards get the guillotine ready! \n");
+            fflush(stdout);
             sleep(1);
             kill (pid, SIGKILL);
             printf("Crowd: BEGONE USELESS BUTLER! \n");
+            fflush(stdout);
             sleep(1);
-            printf("Queen: These butlers are dispensable anyway. I will find another.\n");
+            printf("Queen: These butlers are dispensable anyway. I will find another.\n");  
+            fflush(stdout);
             sleep(1);
             printf("Queen: Goblins you did your best. Be prepared for another raid shortly.\n");
         } else if(gathered > food && (gathered - food) < food * 0.1) { // if within 10 %
             printf("Queen: You mangaged to gather too much food. However, there is enough food for a surplus. You are dismissed... this time. \n");
+            fflush(stdout);
             sleep(1);
             kill (pid, SIGUSR1);
         } else if(gathered > food && !((gathered - food) < food * 0.1)) { // if not within 10 %
             printf("Queen: You mangaged to gather too much food. Guards get the guillotine ready! \n");
+            fflush(stdout);
             sleep(1);
             kill (pid, SIGKILL);
             printf("Crowd: BEGONE USELESS BUTLER! \n");
+            fflush(stdout);
             sleep(1);
             printf("Queen: These butlers are dispensable anyway. I will find another.\n");
+            fflush(stdout);
             sleep(1);
             printf("Queen: Goblins you did your best. Be prepared for another raid shortly.\n");
+            fflush(stdout);
         }
 
         wait(&status);
 
     }
-
+    
     printf("THE END! \n");
+    fflush(stdout);
 
     return 0;
 }
@@ -341,6 +381,7 @@ void * fetchFood(void *num) {
 
     int trips = rand() % (upperTrip - lowerTrip + 1) + lowerTrip;
     printf("Goblin %d: I am going to go on %d adventures to gather this food! \n", list->g_number ,trips);
+    fflush(stdout);
     
     // loop through the trips
     int x;
@@ -363,6 +404,7 @@ void * fetchFood(void *num) {
 
         //messge to print how much food was found
         printf("Goblin %d: I have found %d food on trip %d!\n", list->g_number, foodFound, x);
+        fflush(stdout);
 
         // release mutex on the gathered
         if(pthread_mutex_unlock(&mutex) != 0) {
