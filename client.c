@@ -140,6 +140,7 @@ int main(int argc, char* argv[]) {
       perror("fork");
       exit(0);
     } else if (child == 0) {
+      printf("Compiling test.c as test ... \n");
       execvp("scp", list);
       perror("scp failure");
       exit(1);

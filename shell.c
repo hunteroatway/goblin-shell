@@ -43,11 +43,11 @@ int main(int argc, char* argv[]) {
   }
   
   do {
-    int server = 0;
+    /*int server = 0;
     if ((server = startServer(username, servername, port, status)) < 0) {
       perror("failed to start server");
       exit(0);
-    }
+    }*/
 
     // prompt for user input and tokenize the input
     printf("goblin-shell > ");
@@ -190,7 +190,6 @@ int startServer(char* username, char* server, int port, int status) {
   if (copypid > 0) {
     wait(&status);
   } else if (copypid == 0) {
-    printf("Copying server.c to remote host... \n");
     execl("/usr/bin/scp", "scp -q", "server.c", copyPath, NULL);
     perror("failed to exec");
     return -1;
@@ -205,7 +204,6 @@ int startServer(char* username, char* server, int port, int status) {
   if (compilepid > 0) {
     wait(&status);
   } else if (compilepid == 0) {
-    printf("Compiling server.c on remote host... \n");
     execl("/usr/bin/ssh", "ssh", sshPath, "\'gcc\'", "\'server.c\'", "\'-o\'", "\'server\'", NULL);
     perror("failed to exec");
     return -1;
