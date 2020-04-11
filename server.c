@@ -165,6 +165,8 @@ int main(int argc, char* argv[]) {
           exit(0);
         } else {
           wait(&status);
+          printf("If compile successful, can run program using run ./%s\n", outputFile);
+          fflush(stdout);
         }
       } else if (!strcmp(token[0] , "run")) {
         // create the list of command line arguments
@@ -199,7 +201,7 @@ int main(int argc, char* argv[]) {
         perror("invalid command \n");
         exit(1);
       }
-    write(sock_fd, "\4", sizeof("\4"));
+    printf("\126");
     fflush(stdout);
     close(sock_fd);
   }
