@@ -22,10 +22,11 @@ int main(int argc, char* argv[]) {
   char ch[512];
   char message[BUFSIZE];  // used to send message to server process
   char* word;
+  char* ext;
   char* pos;
 
   char** list = malloc(sizeof(char*) * TOKEN_BUFSIZE);
-  int x = 2;
+  int x = 1;
 
   // is given in form ./client $username $serverName $Port compile $[compliation] 
   char portnum[20];
@@ -50,7 +51,6 @@ int main(int argc, char* argv[]) {
     strcpy(message, task); 
     strcat(message, " ");
     list[0] = strdup("scp");
-    list[1] = strdup("goblin.txt");
     while(argv[i] != NULL){      
       if(argv[i][0] == '-') {
         strcat(message, argv[i]);
@@ -58,14 +58,18 @@ int main(int argc, char* argv[]) {
       } else {
         // split the word via a / to get the scp path and to send the file name to server
         word = strrchr(argv[i], '/');
-        if (word != NULL) {
-          strcat(message, word+1);
-        } else {
-          strcat(message, argv[i]);
+        ext = strrchr(argv[i], '.');
+        if (!strcmp(ext, ".c") || !strcmp(ext, ".cpp") || !strcmp(ext, ".cc") || !strcmp(ext, ".h")){ // only send files with .c, .cpp or .h to the server to be compiled
+          if (word != NULL) {
+            strcat(message, word+1);
+            strcat(message, " ");
+          } else {
+            strcat(message, argv[i]);
+            strcat(message, " ");
+          }
         }
         list[x] = strdup(argv[i]);
         x++;
-        strcat(message, " ");
       }
       i++;
     }

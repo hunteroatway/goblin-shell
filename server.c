@@ -200,6 +200,7 @@ int main(int argc, char* argv[]) {
         exit(1);
       }
     write(sock_fd, "\4", sizeof("\4"));
+    fflush(stdout);
     close(sock_fd);
   }
 
