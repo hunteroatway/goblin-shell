@@ -2,27 +2,32 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h>
 
-#define PORT 0
-#define BUFSIZE 512
-#define TOKEN_BUFSIZE 64
+// function declarations
+char** parseCommand(char* _cmd);
 
-char** parse_command(char* _cmd);
+// global constants
+unsigned int PORT = 0;
+const unsigned int BUFSIZE = 512;
+const unsigned int TOKEN_BUFSIZE = 64;
  
 int main(int argc, char* argv[]) {
+
+  // main variables
   struct sockaddr_in sock_addr;
   struct hostent *host = NULL;
   socklen_t sock_len;
-  int sock;
-  int sock_fd;
+  int num_char = 512;
+  int sock, sock_fd;
   char hostname[256];
+  char ch[512];
 
   // zero out sock_addr struct
   bzero((char *)&sock_addr, sizeof(sock_addr));
@@ -60,31 +65,28 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  int num_char = 512;
-  char ch[512];
-  for(;;)
-  {
+  while (1) {
+    // accept a socket connection from a client
     if ((sock_fd = accept(sock, NULL, NULL)) == -1) {
       perror("accept failed");
       exit(1);
     }
     
     // get current directory 
-    pid_t child;
-    int pfd[2];
+    int pfd[2], status;
     char dir[BUFSIZE];
-    int status;
 
+    // create a pipe
     if(pipe(pfd) == -1) {
       perror("Pipe failue");
       exit(1);
     }
 
-    child = fork();
-    if(child == -1){
+    pid_t child = fork();
+    if (child == -1) {
       perror("fork failed");
       exit(1);
-    } else if (child == 0) { // child
+    } else if (child == 0) {
       // close read end
       close(pfd[0]);
       // redirect std out to pipe
@@ -97,7 +99,7 @@ int main(int argc, char* argv[]) {
         exit(0);
       }
       exit(0);
-    } else { //parent
+    } else {
       close(pfd[1]);
       wait(&status);
 
@@ -115,12 +117,12 @@ int main(int argc, char* argv[]) {
       dup2(sock_fd, fileno(stdout));
       memset(&ch,'\0', sizeof(ch)); 
       num_char = read(sock_fd, ch, 512);
-      char** token = parse_command(ch);
+      char** token = parseCommand(ch);
 
+      // check if the command passed if specifying compiling
       if (!strcmp(token[0] , "compile")) {
-        char outputFile[32];
+        char compilerType[8], outputFile[32];
         char* fileExt = strrchr(token[1], '.');
-        char compilerType[8];
 
         // get the output file name from the input
         int j = 0;
@@ -130,11 +132,11 @@ int main(int argc, char* argv[]) {
         }
 
         // determine the compiler based on the file extension
-        if (!strcmp(fileExt, ".c")) {
+        if (!strcmp(fileExt, ".c"))
           strcpy(compilerType, "gcc");
-        } else if (!strcmp(fileExt, ".cpp")) {
+        else if (!strcmp(fileExt, ".cpp"))
           strcpy(compilerType, "g++");
-        } else {
+        else {
           perror("invalid file type");
           exit(1);
         }
@@ -163,7 +165,7 @@ int main(int argc, char* argv[]) {
           execvp(compilerType, list);
           perror("Failed to exec. Type help for more information on usage");
           exit(0);
-        } else {
+        } else
           wait(&status);
           printf("If compile successful, can run program using run ./%s\n", outputFile);
           fflush(stdout);
@@ -209,7 +211,8 @@ int main(int argc, char* argv[]) {
   return EXIT_SUCCESS;
 }
 
-char** parse_command(char* _cmd) {
+// tokenizes the input from the entire command line
+char** parseCommand(char* _cmd) {
   int size = TOKEN_BUFSIZE;
   int pos = 0;  
   char* delim = " \n\t";
