@@ -46,6 +46,6 @@ exit
 An example program has been provided for testing purposes. The example program is contained within **raid.c** and can be run on a remote host to make sure everything is working as intended.
 
 ```
-compile raid.c goblin.txt
-run raid -pthread
+compile raid.c goblin.txt -pthread
+run raid 
 ```

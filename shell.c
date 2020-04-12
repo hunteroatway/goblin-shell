@@ -65,8 +65,8 @@ int main(int argc, char* argv[]) {
       // display some helpful information
       printf("usage: goblin-shell [COMMANDS] \n\n");
       printf("commands: \n");
-      printf("\tcompile [filename(s)]\t  compile a file on the remote host \n");
-      printf("\trun [filename(s)] [argument(s)]\t  run a program on the remote host \n");
+      printf("\tcompile [code-files] [link-files] [flags]\t  compile a file on the remote host \n");
+      printf("\trun [program-name] [args]\t  run a program on the remote host \n");
       printf("\thelp\t  display usage information \n");
       printf("\texit\t  exit the shell \n\n");
     } else if (!strcmp(token[0], "compile")) {
