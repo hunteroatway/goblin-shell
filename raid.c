@@ -10,7 +10,8 @@
 **
 **  This program is designed to use many features within operating systems such as forks, threads, opening and closing files, mutexes, signals
 **
-**  Alternative compile: gcc raid.c -o raid -pthread
+**  Compile on goblin shell: compile raid.c goblin.txt -pthread
+**  Alternative compile on general unix system: gcc raid.c -o raid -pthread
 **
 ***********************************************************************************************************/
 

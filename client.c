@@ -165,13 +165,21 @@ int main(int argc, char* argv[]) {
      return 0;
    }
  
-  while(((num_char=read(sock, ch, 512)) > 0) && ch[0] != 4) {
+  while(((num_char=read(sock, ch, 512)) > 0) ) {
+    if(ch[num_char-1] != '\126'){
       if (write(1, ch, num_char) < num_char) {
         perror("write failed");
         exit(1);
+      } 
+    } else {
+      if (write(1, ch, num_char-1) < num_char-1) {
+        perror("write failed");
+        exit(1);
       }
-    } 
-    close(sock);
+      break;
+    }
+  } 
+  close(sock);
 
 	return EXIT_SUCCESS;
 }
