@@ -2,7 +2,9 @@
 Goblin Shell allows users to compile and execute local programs on a remote host and have the program output returned to their local machine. This can be useful for running small programs on different operating systems to test compatibility.
 
 Name(s): Hunter Oatway & Justin Ottenbreit
+
 Student ID(s): 200378986 & 200251932
+
 Topic(s): 
   - Sockets
   - Processes
