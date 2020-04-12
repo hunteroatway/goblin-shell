@@ -1,14 +1,16 @@
 CC = cc 
 
 all : 
-	gcc shell.c -o shell 
+	gcc shell.c -o goblin-shell 
 	gcc server.c -o server 
 	gcc client.c -o client 
+	gcc raid.c -o raid -pthread
 
 check : all 
-	./shell
+	./goblin-shell
 	./server
 	./client
+	./raid
 
 clean : 
-	rm -f *.o shell server client raid core.*
+	rm -f *.o goblin-shell server client raid core.*

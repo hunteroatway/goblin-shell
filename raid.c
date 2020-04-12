@@ -28,6 +28,8 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <fcntl.h> 
+#include <unistd.h>
+
 
 int food, troops;
 int queen = 0;
@@ -197,7 +199,7 @@ int main(int argc, char* argv[]) {
         FILE *report = NULL;
         if((report = fopen("report.txt", "w")) == NULL){
             perror("Error opening file");
-            return;
+            return -1;
         }
         
         fprintf(report, "We managed to gather a total of: \n");
@@ -308,7 +310,7 @@ int main(int argc, char* argv[]) {
         FILE * report; 
         if((report = fopen("report.txt", "r")) == NULL){
             perror("Error opening file");
-            return;
+            return -1;
         }
         fscanf(report, "%*[^\n]"); // ignore first line
         fscanf(report, "%d", &gathered); // get the number gathered
@@ -413,6 +415,5 @@ void * fetchFood(void *num) {
             exit(3);
         }
     }
-
-    return;
+  return 0;
 }
