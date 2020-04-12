@@ -43,12 +43,6 @@ int main(int argc, char* argv[]) {
   }
   
   do {
-    /*int server = 0;
-    if ((server = startServer(username, servername, port, status)) < 0) {
-      perror("failed to start server");
-      exit(0);
-    }*/
-
     // prompt for user input and tokenize the input
     printf("goblin-shell > ");
     cmd = getCommand();
@@ -66,9 +60,9 @@ int main(int argc, char* argv[]) {
       printf("usage: goblin-shell [COMMANDS] \n\n");
       printf("commands: \n");
       printf("\tcompile [code-files] [link-files] [flags]\t  compile a file on the remote host \n");
-      printf("\trun [program-name] [args]\t  run a program on the remote host \n");
-      printf("\thelp\t  display usage information \n");
-      printf("\texit\t  exit the shell \n\n");
+      printf("\trun [program-name] [args]\t                  run a program on the remote host \n");
+      printf("\thelp\t                                          display usage information \n");
+      printf("\texit\t                                          exit the shell \n\n");
     } else if (!strcmp(token[0], "compile")) {
       // create argument list to send to client
       char** command = malloc(sizeof(char*)*OFFSET*TOKEN_BUFSIZE);
@@ -171,62 +165,4 @@ void printImage() {
   while(fgets(read, sizeof(read), file) != NULL)
     printf("%s", read);
   fclose(file);
-}
-
-int startServer(char* username, char* server, int port, int status) {
-  char copyPath[256] = {0};
-  strcat(copyPath, username);
-  strcat(copyPath, "@");
-  strcat(copyPath, server);
-  strcat(copyPath, ":");
-  strcat(copyPath, "~/server.c");
-
-  char sshPath[256] = {0};
-  strcat(sshPath, username);
-  strcat(sshPath, "@");
-  strcat(sshPath, server); 
-
-  pid_t copypid = fork();
-  if (copypid > 0) {
-    wait(&status);
-  } else if (copypid == 0) {
-    execl("/usr/bin/scp", "scp -q", "server.c", copyPath, NULL);
-    perror("failed to exec");
-    return -1;
-    exit(0);
-  } else {
-    perror("fork failed");
-    return -1;
-    exit(0);
-  }
-
-  pid_t compilepid = fork();
-  if (compilepid > 0) {
-    wait(&status);
-  } else if (compilepid == 0) {
-    execl("/usr/bin/ssh", "ssh", sshPath, "\'gcc\'", "\'server.c\'", "\'-o\'", "\'server\'", NULL);
-    perror("failed to exec");
-    return -1;
-    exit(0);
-  } else {
-    perror("fork failed");
-    return -1;
-    exit(0);
-  }
-
-  pid_t execpid = fork();
-  if (execpid > 0) {
-    wait(&status);
-  } else if (execpid == 0) {
-    execl("/usr/bin/ssh", "ssh", sshPath, "\'server\'", NULL);
-    perror("failed to exec");
-    return -1;
-    exit(0);
-  } else {
-    perror("fork failed");
-    return -1;
-    exit(0);
-  }
-
-  return 1;
 }

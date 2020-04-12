@@ -160,8 +160,6 @@ int main(int argc, char* argv[]) {
           list[y+1] = strdup(outputFile);
           list[y+2] = NULL;
 
-          printf("Compiling %s as %s ... \n", token[1], outputFile);
-
           // run the file name that was passed via the command with the list of args
           //execlp(compilerType, compilerType, token[1], "-o", outputFile, NULL);
           execvp(compilerType, list);
