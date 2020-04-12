@@ -11,6 +11,16 @@ git clone https://github.com/hunteroatway/goblin-shell.git
 Build the necessary files using the Makefile included with the repository. Running **make** via your terminal will build the necessary files required for operation of the execution environment. 
 
 ## Usage
+The server must be started on the remote machine before a socket connection can be established. You will need to copy the **server.c** file over to the remote host and then compile using **gcc**. 
+
+```
+scp server.c <user-name>@<server-name>:server.c
+gcc server.c -o server
+./server
+```
+
+Running the server will provide the port number for the socket that will be needed to start the shell.
+
 Run the shell by executing the following on your terminal.
 
 ```
