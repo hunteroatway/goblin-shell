@@ -11,6 +11,8 @@ Topic(s):
   - Signals
   - Pipes
   - Shell Scripting
+  - Threads
+  - Concurrency
 
 ## Setup
 Download the necessary files using the following git command from your terminal:
