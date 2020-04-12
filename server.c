@@ -167,12 +167,12 @@ int main(int argc, char* argv[]) {
           execvp(compilerType, list);
           perror("Failed to exec. Type help for more information on usage");
           exit(0);
-        } else
+        } else {
           wait(&status);
           printf("If compile successful, can run program using run ./%s\n", outputFile);
           fflush(stdout);
         }
-      } else if (!strcmp(token[0] , "run")) {
+      } else if (!strcmp(token[0], "run")) {
         // create the list of command line arguments
         char** args = malloc(sizeof(char*)*(num_char+1));
 
