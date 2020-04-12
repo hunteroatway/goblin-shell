@@ -23,6 +23,8 @@ git clone https://github.com/hunteroatway/goblin-shell.git
 
 Build the necessary files using the Makefile included with the repository. Running **make** via your terminal will build the necessary files required for operation of the execution environment. 
 
+**Note: Goblin-Shell only compiles on UNIX based systems at the moment (Linux/Mac OSX).**
+
 ## Usage
 The server must be started on the remote machine before a socket connection can be established. You will need to copy the **server.c** file over to the remote host and then compile using **gcc**. 
 
