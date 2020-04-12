@@ -58,6 +58,7 @@ int main(int argc, char* argv[]) {
   sock_len = sizeof(sock_addr);
   getsockname(sock, (struct sockaddr*)&sock_addr, &sock_len);
   printf("Port: %d\n", ntohs(sock_addr.sin_port));
+  fflush(stdout);
 
   // listen for input (1 connection)
   if (listen(sock, 1) != 0) {

@@ -1,6 +1,15 @@
 # Goblin Shell - Remote Execution Shell
 Goblin Shell allows users to compile and execute local programs on a remote host and have the program output returned to their local machine. This can be useful for running small programs on different operating systems to test compatibility.
 
+Name(s): Hunter Oatway & Justin Ottenbreit
+Student ID(s): 200378986 & 200251932
+Topic(s): 
+  - Sockets
+  - Processes
+  - Signals
+  - Pipes
+  - Shell Scripting
+
 ## Setup
 Download the necessary files using the following git command from your terminal:
 
@@ -18,6 +27,13 @@ scp server.c <user-name>@<server-name>:server.c
 gcc server.c -o server
 ./server
 ```
+
+**Note: A script to start the server (startServer.sh) can be run. The username and servername must be provided as arguments. You may be prompted for a password multiple times.**
+
+```
+chmod +x startServer.sh
+./startServer.sh <user-name> <server-name> 
+``` 
 
 Running the server will provide the port number for the socket that will be needed to start the shell.
 
